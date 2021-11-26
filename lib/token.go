@@ -50,7 +50,7 @@ type CharStream struct {
 	Len  int
 }
 
-func NewCharStrem(data string) *CharStream {
+func NewCharStream(data string) *CharStream {
 	return &CharStream{Data: data, Line: 1, Len: len(data)}
 }
 
