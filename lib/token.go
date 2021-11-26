@@ -1,19 +1,13 @@
 package lib
 
 /**
- * 第1节
- * 本节的目的是迅速的实现一个最精简的语言的功能，让你了解一门计算机语言的骨架。
- * 知识点：
- * 1.递归下降的方法做词法分析；
- * 2.语义分析中的引用消解（找到函数的定义）；
- * 3.通过遍历AST的方法，执行程序。
+ * 第2节
+ * 本节的知识点有两个：
+ * 1.学会词法分析；
+ * 2.升级语法分析为LL算法，因此需要知道如何使用First和Follow集合。
  *
- * 本节采用的语法规则是极其精简的，只能定义函数和调用函数。定义函数的时候，还不能有参数。
- * prog = (functionDecl | functionCall)* ;
- * functionDecl: "function" Identifier "(" ")"  functionBody;
- * functionBody : '{' functionCall* '}' ;
- * functionCall : Identifier '(' parameterList? ')' ;
- * parameterList : StringLiteral (',' StringLiteral)* ;
+ * 本节采用的词法规则是比较精简的，比如不考虑Unicode。
+ * Identifier: [a-zA-Z_][a-zA-Z0-9_]* ;
  */
 
 /////////////////////////////////////////////////////////////////////////
@@ -42,39 +36,45 @@ type Token struct {
 	Text string
 }
 
-// 一个Token数组，代表了下面这段程序做完词法分析后的结果：
-/*
-//一个函数的声明，这个函数很简单，只打印"Hello World!"
-function sayHello(){
-    println("Hello World!");
+/**
+ * 一个字符串流。其操作为：
+ * peek():预读下一个字符，但不移动指针；
+ * next():读取下一个字符，并且移动指针；
+ * eof():判断是否已经到了结尾。
+ */
+type CharStream struct {
+	Data string
+	Pos  int
+	Line int
+	Col  int
+	Len  int
 }
-//调用刚才声明的函数
-sayHello();
-*/
-// 一个Token数组，代表了下面这段程序做完词法分析后的结果：
-/*
-//一个函数的声明，这个函数很简单，只打印"Hello World!"
-function sayHello(){
-    println("Hello World!");
+
+func NewCharStrem(data string) *CharStream {
+	return &CharStream{Data: data, Line: 1, Len: len(data)}
 }
-//调用刚才声明的函数
-sayHello();
-*/
-var TokenArray = []Token{
-	{Kind: Keyword, Text: "fn"},
-	{Kind: Identifier, Text: "sayHello"},
-	{Kind: Seperator, Text: "("},
-	{Kind: Seperator, Text: ")"},
-	{Kind: Seperator, Text: "{"},
-	{Kind: Identifier, Text: "println"},
-	{Kind: Seperator, Text: "("},
-	{Kind: StringLiteral, Text: "Hello World!"},
-	{Kind: Seperator, Text: ")"},
-	{Kind: Seperator, Text: ";"},
-	{Kind: Seperator, Text: "}"},
-	{Kind: Identifier, Text: "sayHello"},
-	{Kind: Seperator, Text: "("},
-	{Kind: Seperator, Text: ")"},
-	{Kind: Seperator, Text: ";"},
-	{Kind: EOF, Text: ""},
+
+func (a *CharStream) Peek() string {
+	if a.Pos >= a.Len {
+		return ""
+	}
+	r := string([]rune(a.Data)[a.Pos])
+	return r
+
+}
+
+func (a *CharStream) Next() string {
+	ch := a.Peek()
+	a.Pos += 1
+	if ch == "\n" {
+		a.Line += 1
+		a.Col = 0
+	} else {
+		a.Col += 1
+	}
+	return ch
+}
+
+func (a *CharStream) EOF() bool {
+	return a.Peek() == ""
 }

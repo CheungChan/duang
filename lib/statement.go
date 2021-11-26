@@ -131,7 +131,7 @@ func IsFunctionCallNode(node interface{}) bool {
 
 func (a *FunctionCall) Dump(prefix string) {
 	r := "resolved"
-	if a.Defination == nil {
+	if a.Defination == nil && a.Name != BUILTIN_FUNCTION_PRINTLN {
 		r = "not resolved"
 	}
 	fmt.Printf("%s FunctionCall %s %s\n", prefix, a.Name, r)

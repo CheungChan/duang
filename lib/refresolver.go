@@ -8,7 +8,7 @@ import "fmt"
  */
 type AstVisiter struct{}
 
-func (a AstVisiter) VisitProg(prog *Prog) interface{} {
+func (a *AstVisiter) VisitProg(prog *Prog) interface{} {
 	var retVal interface{}
 	for _, x := range prog.Stmts {
 		f, ok := x.(*FunctionDecl)
@@ -22,11 +22,11 @@ func (a AstVisiter) VisitProg(prog *Prog) interface{} {
 	return retVal
 }
 
-func (a AstVisiter) VisitFunctionDecl(f FunctionDecl) interface{} {
+func (a *AstVisiter) VisitFunctionDecl(f FunctionDecl) interface{} {
 	return a.VisitFunctionBody(f.Body)
 }
 
-func (a AstVisiter) VisitFunctionBody(b *FunctionBody) interface{} {
+func (a *AstVisiter) VisitFunctionBody(b *FunctionBody) interface{} {
 	var retVal interface{}
 	for _, x := range b.Stmts {
 		retVal = a.VisitFunctionCall(x)
@@ -67,6 +67,9 @@ func (a *RefResolver) VisitProg(prog *Prog) interface{} {
 
 	}
 	return nil
+}
+func (a *RefResolver) VisitFunctionDecl(f FunctionDecl) interface{} {
+	return a.VisitFunctionBody(f.Body)
 }
 
 func (a *RefResolver) VisitFunctionBody(b *FunctionBody) interface{} {
