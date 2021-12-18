@@ -201,7 +201,7 @@ impl Tokenizer {
         Token::Identifier(text)
     }
     fn is_letter_digit_underscore(&self, ch: char) -> bool {
-        ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_'
+        self.is_letter(ch) || self.is_digit(ch) || ch == '_'
     }
     fn is_letter(&self, ch: char) -> bool {
         ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z'

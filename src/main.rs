@@ -1,8 +1,8 @@
-use std::fs;
 use duang::{
     token::{CharStream, Token},
     tokenizer::Tokenizer,
 };
+use std::fs;
 
 fn main() {
     let code = fs::read_to_string("test_data/hello.duang").expect("文件没找到");

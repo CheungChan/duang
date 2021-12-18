@@ -1,3 +1,7 @@
+// 定义duang语言的关键字
+pub const K_KEYWORD_FUNCTION: &str = "fn";
+pub const K_BUILTIN_PRINTLN: &str = "print";
+
 // token的枚举, 代表一个token，使用rust枚举附带String值，String即为Token的名字
 #[derive(Clone, Debug)]
 pub enum Token {
@@ -9,9 +13,17 @@ pub enum Token {
     EOF,
 }
 
-// 定义duang语言的关键字
-pub const K_KEYWORD_FUNCTION: &str = "fn";
-pub const K_BUILTIN_PRINTLN: &str = "println";
+impl Token {
+    pub fn text(&self) -> &str {
+        match self {
+            Token::Keyword(t) => t,
+            Token::Identifier(t) => t,
+            Token::StringLiteral(t) => t,
+            Token::Operator(t) => t,
+            _ => "",
+        }
+    }
+}
 
 /**
  * 一个字符串流。其操作为：
@@ -20,7 +32,7 @@ pub const K_BUILTIN_PRINTLN: &str = "println";
  * eof():判断是否已经到了结尾。
  */
 pub struct CharStream {
-    code: String,
+    pub code: String,
     pos: usize,
     pub line: usize,
     pub col: usize,
@@ -64,8 +76,5 @@ impl CharStream {
     }
     pub fn eof(&self) -> bool {
         self.peek() == '\0'
-    }
-    pub fn get_code(&self) -> &str {
-        return self.code.as_str();
     }
 }
