@@ -163,7 +163,23 @@ impl Tokenizer {
         self.stream.next();
         let mut text = String::new();
         while !self.stream.eof() && self.stream.peek() != '"' {
-            text.push(self.stream.next());
+            let mut next = self.stream.next();
+            if next == '\\' {
+                let next_next = self.stream.next();
+                next = match next_next {
+                    '\0' => '\0',
+                    'n' => '\n',
+                    't' => '\t',
+                    '"' => '"',
+                    default => {
+                        println!("can not recognize \\{}", default);
+                        '\0'
+                    }
+                };
+                text.push(next);
+            } else {
+                text.push(next)
+            }
         }
         if self.stream.peek() == '"' {
             self.stream.next();
@@ -184,19 +200,19 @@ impl Tokenizer {
         }
         Token::Identifier(text)
     }
-    fn is_letter_digit_underscore(& self, ch: char) -> bool {
+    fn is_letter_digit_underscore(&self, ch: char) -> bool {
         ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_'
     }
-    fn is_letter(& self, ch: char) -> bool {
+    fn is_letter(&self, ch: char) -> bool {
         ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z'
     }
-    fn is_digit(& self, ch: char) -> bool {
+    fn is_digit(&self, ch: char) -> bool {
         ch >= '0' && ch <= '9'
     }
-    fn is_white_space(& self, ch: char) -> bool {
+    fn is_white_space(&self, ch: char) -> bool {
         ch == ' ' || ch == '\n' || ch == '\t'
     }
-    fn is_underline(& self, ch: char) -> bool {
+    fn is_underline(&self, ch: char) -> bool {
         ch == '_'
     }
 }

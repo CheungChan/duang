@@ -6,6 +6,10 @@
 // single line comment will be ignored
 fn hello(){
     println("hello world");
+    println("终于支持中文喽，你好，世界");
+    println("终于支持转义喽，你好，\"世界\"");
+    println("试试无参数函数");
+    println();
 }
 
 /*
