@@ -20,6 +20,7 @@ impl Token {
             Token::Identifier(t) => t,
             Token::StringLiteral(t) => t,
             Token::Operator(t) => t,
+            Token::Seperator(t)=>t,
             _ => "",
         }
     }

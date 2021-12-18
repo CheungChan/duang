@@ -6,7 +6,7 @@ pub enum Statement {
     FunctionDecl(FunctionDecl),
     FunctionBody(FunctionBody),
 }
-
+#[derive(Debug)]
 pub struct Prog {
     pub stmts: Vec<Statement>,
 }

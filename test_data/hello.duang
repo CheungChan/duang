@@ -18,10 +18,12 @@ fn hello(){
 * will be ignored
 */
 // support function decl
-fn foo(){
-    // support nested function call
-    hello();
-}
+// fn foo(){
+//     // support nested function call 暂不支持嵌套
+//     hello();
+// }
 
 // support function call
-foo();
+// foo();
+hello();
+hello();

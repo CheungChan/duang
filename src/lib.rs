@@ -1,3 +1,4 @@
+pub mod intepretor;
 pub mod parser;
 pub mod semantic;
 pub mod statement;

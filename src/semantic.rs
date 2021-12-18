@@ -24,7 +24,9 @@ impl RefResolver {
             match stat {
                 Statement::FunctionCall(f) => {
                     if let Some(t) = self.resolve_function_call(f) {
-                        self.prog.stmts[i] = Statement::FunctionDecl(t)
+                        let mut fc = FunctionCall::new(f.name.clone(), f.parameters.clone());
+                        fc.defination = Some(t);
+                        self.prog.stmts[i] = Statement::FunctionCall(fc);
                     }
                 }
                 _ => {}
