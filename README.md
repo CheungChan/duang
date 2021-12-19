@@ -2,10 +2,13 @@
 
 语法上打算借鉴`Rust,Golang,Python,Java`的诸多长处，目前正在开发中。
 
-feature举例
-
+### feature进度
+- [x] 支持单行注释
+- [x] 支持多行注释
 - [x] 实现函数声明
+- [ ] 函数声明支持参数
 - [x] 实现函数调用
+- [ ] 函数调用支持参数（暂时只支持字符串)
 - [ ] 支持函数传参
 - [x] 实现函数嵌套调用
 - [x] 支持先调用再定义函数
@@ -14,70 +17,58 @@ feature举例
 - [ ] 实现变量类型
 - [ ] 实现表达式
 
-语法举例：
-```rust
-/*
- My first program language called "duang"
- Here you are!!
-*/
+### 语法举例：
+[测试用例](https://github.com/CheungChan/duang/blob/rust02/test_data/hello.duang)
+### 下载duang解释器
+可以去本项目release去下载 [release下载地址](https://github.com/CheungChan/duang/releases) 
 
-// single line comment will be ignored
-fn hello(){
-    print("hello world");
-    print("终于支持中文喽，你好，世界");
-    print("终于支持转义喽，你好，\"世界\"");
-    print("试试无参数函数");
-    print();
-}
-
-/*
-* mulitple line
-* comment
-* will be ignored
-*/
-// support function decl
-// fn foo(){
-//     // support nested function call 暂不支持嵌套
-//     hello();
-// }
-
-// support function call
-// foo();
-hello();
-hello();
-```
-本程序从`go`重构成了`rust`开发，开发速度明显变慢了，但是运行速度和二进制大小获得了非常大的提升。
-
-对比如下：（golang 3M ->  rust 498K)
-
-二进制大小：
-![](https://img.azhangbaobao.cn/img/20211219030558.png)
-![](https://img.azhangbaobao.cn/img/20211219030450.png)
-运行时间：
-![](https://img.azhangbaobao.cn/img/20211219031052.png)
-![](https://img.azhangbaobao.cn/img/20211219031328.png)
-项目编译
+由于精力原因暂时只维护mac版解释器，感兴趣同学可以从源码编译获取duang解释器。
+### 从源码编译获取duang解释器
 ```bash
+# 下载源码
+git clone git@github.com:CheungChan/duang.git
+cd duang
+# 安装rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# 编译解释器
 cargo build --release
+# 解释器编译好了位于 ./target/release/duang 拷贝出来即可
 ```
 
-运行duang程序：
+
+### 运行方式(解释执行，类似python)：
 ```bash
  duang  test_data/hello.duang  #解释执行代码test_data/hello.duang
 ```
+![](https://img.azhangbaobao.cn/img/20211219152443.png)
 
-输出
-
-![](https://img.azhangbaobao.cn/img/20211219025902.png)
-
-verbose模式运行duang程序（会输出AST分析过程)：
+### verbose模式运行duang程序（会输出包括AST分析过程，可用于调试duang解释器)：
 ```bash
 export DUANG_DEBUG=1 && ./duang test_data/hello.duang
 ```
 
 输出部分结果如图：
+![](https://img.azhangbaobao.cn/img/20211219152657.png)
 
-![](https://img.azhangbaobao.cn/img/20211219030047.png)
-![](https://img.azhangbaobao.cn/img/20211219030140.png)
-![](https://img.azhangbaobao.cn/img/20211219030201.png)
-![](https://img.azhangbaobao.cn/img/20211219030222.png)
+### 关于rust重新实现
+一开始程序使用`go`开发，参见`01 02`分支。后本程序从`go`重构成了`rust`开发，开发速度明显变慢了，但是运行速度和二进制大小获得了非常大的提升。
+
+对比如下：（golang 3M ->  rust 498K)
+
+### 二进制大小对比：
+golang:
+![](https://img.azhangbaobao.cn/img/20211219030558.png)
+rust:
+![](https://img.azhangbaobao.cn/img/20211219030450.png)
+#### 运行时间对比：
+golang:
+![](https://img.azhangbaobao.cn/img/20211219031052.png)
+rust:
+![](https://img.azhangbaobao.cn/img/20211219152912.png)
+
+#### 结论
+可以看到即使rust版的支持更多的feature（中文字符，转义字符，函数嵌套，先调用后定义）
+
+rust比go的二进制非常小，运行时间也短好多。
+
+当然，代价是开发效率非常慢，踩了非常多的坑。
