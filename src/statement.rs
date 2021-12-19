@@ -41,15 +41,10 @@ impl FunctionBody {
 pub struct FunctionCall {
     pub name: String,
     pub parameters: Vec<String>,
-    pub defination: Option<FunctionDecl>,
 }
 
 impl FunctionCall {
     pub fn new(name: String, parameters: Vec<String>) -> Self {
-        Self {
-            name,
-            parameters,
-            defination: None,
-        }
+        Self { name, parameters }
     }
 }

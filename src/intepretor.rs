@@ -1,5 +1,7 @@
+use crate::statement::Statement;
 use crate::{
-    statement::{FunctionBody, FunctionCall, Prog, Statement},
+    semantic::SYMBLE_TABLE,
+    statement::{FunctionBody, FunctionCall, Prog},
     token::K_BUILTIN_PRINTLN,
 };
 
@@ -25,10 +27,10 @@ impl Intepretor {
                 _ => println!("{:?}", t.parameters),
             }
         } else {
-            if let Some(d) = &t.defination {
+            if let Some(d) = SYMBLE_TABLE.read().unwrap().get(t.name.as_str()) {
                 self.visit_body(&d.body);
             } else {
-                println!("can not find definition function {}", t.name)
+                panic!("找不到函数定义 {}", t.name);
             }
         }
     }

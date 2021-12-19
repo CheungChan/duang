@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate lazy_static;
 pub mod intepretor;
 pub mod parser;
 pub mod semantic;

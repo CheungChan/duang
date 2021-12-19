@@ -3,6 +3,13 @@ use crate::{
     token::K_BUILTIN_PRINTLN,
 };
 
+use std::{collections::HashMap, sync::RwLock};
+
+lazy_static! {
+    pub static ref SYMBLE_TABLE: RwLock<HashMap<String, FunctionDecl>> =
+        RwLock::new(HashMap::new());
+}
+
 pub struct RefResolver {
     prog: Prog,
 }
@@ -34,7 +41,10 @@ impl RefResolver {
     }
     fn resolve_function_call(&self, function_call: &mut FunctionCall) {
         if let Some(t) = self.find_function_decl(function_call.name.as_str()) {
-            function_call.defination = Some(t);
+            SYMBLE_TABLE
+                .write()
+                .unwrap()
+                .insert(function_call.name.clone(), t);
         } else {
             if function_call.name != K_BUILTIN_PRINTLN {
                 println!(

@@ -1,29 +1,52 @@
 /*
- My first program language called "duang"
- Here you are!!
-*/
+支持
+多行
+注释
+ */
 
-// single line comment will be ignored
-fn hello(){
+// 支持单行注释
+fn hello() {
     print("hello world");
-    print("终于支持中文喽，你好，世界");
-    print("终于支持转义喽，你好，\"世界\"");
-    print("试试无参数函数");
+    print("也可以无参打印");
     print();
 }
 
-/*
-* mulitple line
-* comment
-* will be ignored
-*/
-// support function decl
-// fn foo(){
-//     // support nested function call 暂不支持嵌套
-//     hello();
-// }
+fn print_chinese() {
+    print("终于支持中文喽，你好，世界");
+}
 
-// support function call
-// foo();
+fn print_escape() {
+    print("支持转义字符");
+    print("我说: \"你好，世界\"");
+    print("制表符也支持了");
+    print("标头\tname\tage");
+    print("数据\t张三\t28");
+    print("数据\t李四\t30");
+    print("换行支持");
+    print("这样就\n是一首诗\n了");
+}
+
+fn nested_function() {
+    print("这里是嵌套函数");
+    nested_nested_function();
+}
+
+fn nested_nested_function() {
+    print("嵌套再嵌套");
+}
+fn print_nested_function() {
+    // 支持函数嵌套
+    nested_function();
+}
+
+
+// 直接函数调用
 hello();
-hello();
+print_chinese();
+print_escape();
+print_nested_function();
+function_after();
+
+fn function_after() {
+    print("支持先调用再定义函数");
+}
