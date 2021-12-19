@@ -127,11 +127,11 @@ impl Parser {
                 }
                 // 消解掉一个; 或者换行
                 t2 = self.tokenizer.next();
-                if t2.text() == ";" || t2.text() == "\n" {
+                if t2.text() == ";" {
                     return Some(FunctionCall::new(text, params));
                 } else {
                     println!(
-                        "expected ; or \\n in function call, while we got a '{}'",
+                        "expected ; in function call, while we got a '{}'",
                         t2.text()
                     );
                     return None;

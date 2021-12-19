@@ -72,3 +72,8 @@ rust:
 rust比go的二进制非常小，运行时间也短好多。
 
 当然，代价是开发效率非常慢，踩了非常多的坑。
+### 语法高亮问题
+由于`duang`语言是自制语言，你的IDE可能（不是可能是一定）不支持语法高亮，可以通过给`*.duang`默认使用`rust`语言识别来解决，因为`duang`语言关键字
+跟`rust`很像。你可以在`vscode`设置里面找到`Files:Associations`部分进行添加如图：
+
+![](https://img.azhangbaobao.cn/img/20211219230406.png)
