@@ -15,13 +15,11 @@ pub struct RefResolver {
 }
 
 impl RefResolver {
-    pub fn new() -> RefResolver {
-        let prog = Prog::new(vec![]);
-        Self { prog }
+    pub fn new(prog: &Prog) -> RefResolver {
+        Self { prog: prog.clone() }
     }
-    pub fn vist_prog(&mut self, prog: &mut Prog) {
-        self.prog = prog.clone();
-        for stat in prog.stmts.iter_mut() {
+    pub fn vist_prog(&mut self) {
+        for stat in self.prog.stmts.iter() {
             match stat {
                 Statement::FunctionDecl(f) => self.visit_function_decl(f),
                 Statement::FunctionCall(f) => {
@@ -31,15 +29,15 @@ impl RefResolver {
             }
         }
     }
-    fn visit_function_decl(&self, function_decl: &mut FunctionDecl) {
-        self.visit_function_body(&mut function_decl.body);
+    fn visit_function_decl(&self, function_decl: &FunctionDecl) {
+        self.visit_function_body(&function_decl.body);
     }
-    fn visit_function_body(&self, function_body: &mut FunctionBody) {
-        for stat in function_body.stmts.iter_mut() {
+    fn visit_function_body(&self, function_body: &FunctionBody) {
+        for stat in function_body.stmts.iter() {
             self.resolve_function_call(stat);
         }
     }
-    fn resolve_function_call(&self, function_call: &mut FunctionCall) {
+    fn resolve_function_call(&self, function_call: &FunctionCall) {
         if let Some(t) = self.find_function_decl(function_call.name.as_str()) {
             SYMBLE_TABLE
                 .write()

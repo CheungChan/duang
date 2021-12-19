@@ -9,8 +9,8 @@ pub struct Intepretor {
     prog: Prog,
 }
 impl Intepretor {
-    pub fn new(prog: Prog) -> Intepretor {
-        Self { prog }
+    pub fn new(prog: &Prog) -> Intepretor {
+        Self { prog: prog.clone() }
     }
     pub fn visit_prog(&self) {
         for stmt in self.prog.stmts.iter() {

@@ -46,7 +46,7 @@ fn main() {
     if verbose {
         println!("语法分析");
     }
-    let mut prog = Parser::new(t).parse_prog();
+    let prog = Parser::new(t).parse_prog();
     if verbose {
         println!("{:#?}", prog);
     }
@@ -54,7 +54,7 @@ fn main() {
     if verbose {
         println!("语义分析");
     }
-    RefResolver::new().vist_prog(&mut prog);
+    RefResolver::new(&prog).vist_prog();
     if verbose {
         println!("语法分析后的AST，注意自定义函数的调用已被消解:");
         println!("{:#?}", prog);
@@ -63,7 +63,7 @@ fn main() {
     if verbose {
         println!("运行程序");
     }
-    Intepretor::new(prog).visit_prog();
+    Intepretor::new(&prog).visit_prog();
     if verbose {
         println!("运行完成")
     }
