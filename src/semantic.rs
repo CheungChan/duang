@@ -4,46 +4,37 @@ use crate::{
 };
 
 pub struct RefResolver {
-    pub prog: Prog,
+    prog: Prog,
 }
 
 impl RefResolver {
-    pub fn new(prog: Prog) -> Self {
+    pub fn new() -> RefResolver {
+        let prog = Prog::new(vec![]);
         Self { prog }
     }
-    pub fn vist_prog(&mut self) {
-        for stat in self.prog.stmts.iter() {
+    pub fn vist_prog(&mut self, prog: &mut Prog) {
+        self.prog = prog.clone();
+        for stat in prog.stmts.iter_mut() {
             match stat {
                 Statement::FunctionDecl(f) => self.visit_function_decl(f),
-                _ => {}
-            }
-        }
-        // rust不能有两个可变借用，因为要修改self上的值， self必须是可变借用， stmts就不能再可变借用了。
-        //也不能对stmts同时进行可读和可写。所以self.prog.stmts进行了clone遍历。通过下表赋值修改原来的stmts
-        for (i, stat) in self.prog.stmts.clone().iter().enumerate() {
-            match stat {
                 Statement::FunctionCall(f) => {
-                    if let Some(t) = self.resolve_function_call(f) {
-                        let mut fc = FunctionCall::new(f.name.clone(), f.parameters.clone());
-                        fc.defination = Some(t);
-                        self.prog.stmts[i] = Statement::FunctionCall(fc);
-                    }
+                    self.resolve_function_call(f);
                 }
                 _ => {}
             }
         }
     }
-    fn visit_function_decl(&self, function_decl: &FunctionDecl) {
-        self.visit_function_body(&function_decl.body);
+    fn visit_function_decl(&self, function_decl: &mut FunctionDecl) {
+        self.visit_function_body(&mut function_decl.body);
     }
-    fn visit_function_body(&self, function_body: &FunctionBody) {
-        for stat in function_body.stmts.iter() {
+    fn visit_function_body(&self, function_body: &mut FunctionBody) {
+        for stat in function_body.stmts.iter_mut() {
             self.resolve_function_call(stat);
         }
     }
-    fn resolve_function_call(&self, function_call: &FunctionCall) -> Option<FunctionDecl> {
+    fn resolve_function_call(&self, function_call: &mut FunctionCall) {
         if let Some(t) = self.find_function_decl(function_call.name.as_str()) {
-            return Some(t);
+            function_call.defination = Some(t);
         } else {
             if function_call.name != K_BUILTIN_PRINTLN {
                 println!(
@@ -52,7 +43,6 @@ impl RefResolver {
                 );
             }
         }
-        None
     }
     fn find_function_decl(&self, name: &str) -> Option<FunctionDecl> {
         for stat in self.prog.stmts.iter() {

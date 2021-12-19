@@ -27,6 +27,8 @@ impl Intepretor {
         } else {
             if let Some(d) = &t.defination {
                 self.visit_body(&d.body);
+            } else {
+                println!("can not find definition function {}", t.name)
             }
         }
     }
