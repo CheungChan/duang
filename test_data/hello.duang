@@ -7,7 +7,7 @@
 // 支持单行注释
 fn hello() {
     print("hello world");
-    print("也可以无参打印");
+    print("no arguments print a new line");
     print();
 }
 

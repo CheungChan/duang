@@ -25,10 +25,6 @@ fn main() {
         println!("读取源码文件{}", filename);
     }
     let code = fs::read_to_string(filename).expect("文件没找到");
-    if verbose {
-        println!("源代码");
-        println!("{}", code);
-    }
     // 词法分析
     if verbose {
         println!("词法分析");
