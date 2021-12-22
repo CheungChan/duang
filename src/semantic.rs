@@ -22,9 +22,7 @@ impl RefResolver {
         for stat in self.prog.stmts.iter() {
             match stat {
                 Statement::FunctionDecl(f) => self.visit_function_decl(f),
-                Statement::FunctionCall(f) => {
-                    self.resolve_function_call(f);
-                }
+                Statement::FunctionCall(f) => self.resolve_function_call(f),
                 _ => {}
             }
         }

@@ -125,7 +125,7 @@ impl Parser {
                         }
                     }
                 }
-                // 消解掉一个; 或者换行
+                // 消解掉一个; 
                 t2 = self.tokenizer.next();
                 if t2.text() == ";" {
                     return Some(FunctionCall::new(text, params));

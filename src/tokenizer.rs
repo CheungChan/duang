@@ -117,7 +117,7 @@ impl Tokenizer {
             }
             _ => {
                 println!(
-                    "不能识别 {} 在{}行{}列",
+                    "can not recognize{} at line:{},col:{}",
                     ch, self.stream.line, self.stream.col
                 );
                 self.stream.next();
@@ -149,7 +149,7 @@ impl Tokenizer {
             }
         }
         println!(
-            "找不到匹配多行注释的*/在{}行{}列",
+            "can not find */ for multiple line commment at line:{},col:{}",
             self.stream.line, self.stream.col
         )
     }
@@ -185,7 +185,7 @@ impl Tokenizer {
             self.stream.next();
             return Token::StringLiteral(text);
         }
-        println!("需要一个\"在{}行{}列", self.stream.line, self.stream.col);
+        println!("need a \"at line:{},col:{}", self.stream.line, self.stream.col);
         return Token::StringLiteral("".to_string());
     }
     fn parse_identifier(&mut self) -> Token {
