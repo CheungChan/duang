@@ -2,7 +2,7 @@ use crate::statement::Statement;
 use crate::{
     semantic::SYMBLE_TABLE,
     statement::{FunctionBody, FunctionCall, Prog},
-    token::K_BUILTIN_PRINTLN,
+    scanner::K_BUILTIN_PRINTLN,
 };
 
 pub struct Intepretor {

@@ -1,15 +1,15 @@
 use crate::{
+    scanner::Token,
+    scanner::Scanner,
     statement::{FunctionBody, FunctionCall, FunctionDecl, Prog, Statement},
-    token::Token,
-    tokenizer::Tokenizer,
 };
 
 pub struct Parser {
-    tokenizer: Tokenizer,
+    tokenizer: Scanner,
 }
 
 impl Parser {
-    pub fn new(tokenizer: Tokenizer) -> Self {
+    pub fn new(tokenizer: Scanner) -> Self {
         Self { tokenizer }
     }
     /**
@@ -125,7 +125,7 @@ impl Parser {
                         }
                     }
                 }
-                // 消解掉一个; 
+                // 消解掉一个;
                 t2 = self.tokenizer.next();
                 if t2.text() == ";" {
                     return Some(FunctionCall::new(text, params));

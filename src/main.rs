@@ -1,9 +1,9 @@
 use duang::{
     intepretor::Intepretor,
     parser::Parser,
+    scanner::Scanner,
+    scanner::{CharStream, Token},
     semantic::RefResolver,
-    token::{CharStream, Token},
-    tokenizer::Tokenizer,
 };
 use std::{env, fs};
 
@@ -29,7 +29,7 @@ fn main() {
     if verbose {
         println!("词法分析");
     }
-    let mut t = Tokenizer::new(CharStream::new(code.clone()));
+    let mut t = Scanner::new(CharStream::new(code.clone()));
     loop {
         match t.peek() {
             Token::EOF => break,
@@ -41,7 +41,7 @@ fn main() {
             }
         }
     }
-    let t = Tokenizer::new(CharStream::new(code));
+    let t = Scanner::new(CharStream::new(code));
     // 语法分析
     if verbose {
         println!("语法分析");

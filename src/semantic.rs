@@ -1,6 +1,6 @@
 use crate::{
+    scanner::K_BUILTIN_PRINTLN,
     statement::{FunctionBody, FunctionCall, FunctionDecl, Prog, Statement},
-    token::K_BUILTIN_PRINTLN,
 };
 
 use std::{collections::HashMap, sync::RwLock};
