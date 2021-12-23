@@ -1,42 +1,21 @@
-use crate::statement::Statement;
+use std::{any::Any, collections::HashMap};
+
+use crate::ast::Statement;
 use crate::{
-    semantic::SYMBLE_TABLE,
-    statement::{FunctionBody, FunctionCall, Prog},
+    ast::{Block, FunctionCall, Prog},
     scanner::K_BUILTIN_PRINTLN,
 };
 
 pub struct Intepretor {
-    prog: Prog,
+    values: HashMap<String, Box<dyn Any>>,
 }
 impl Intepretor {
-    pub fn new(prog: &Prog) -> Intepretor {
-        Self { prog: prog.clone() }
-    }
-    pub fn visit_prog(&self) {
-        for stmt in self.prog.stmts.iter() {
-            if let Statement::FunctionCall(t) = stmt {
-                self.run_function(t);
-            }
-        }
-    }
-    fn run_function(&self, t: &FunctionCall) {
-        if t.name == K_BUILTIN_PRINTLN {
-            match t.parameters.len() {
-                0 => println!(),
-                1 => println!("{}", t.parameters[0]),
-                _ => println!("{:?}", t.parameters),
-            }
-        } else {
-            if let Some(d) = SYMBLE_TABLE.read().unwrap().get(t.name.as_str()) {
-                self.visit_body(&d.body);
-            } else {
-                panic!("找不到函数定义 {}", t.name);
-            }
-        }
-    }
-    fn visit_body(&self, function_body: &FunctionBody) {
-        for stmt in function_body.stmts.iter() {
-            self.run_function(stmt);
-        }
+    /**
+     * 运行函数调用。
+     * 原理：根据函数定义，执行其函数体。
+     * @param functionCall
+     */
+    pub fn visit_function_call(functionCall: FunctionCall) {
+        if functionCall.name == K_BUILTIN_PRINTLN {}
     }
 }

@@ -13,8 +13,16 @@ macro_rules! set {
     };
 }
 
-pub mod intepretor;
+macro_rules! hashmap {
+    ($( $key: expr ; $val: expr ),*) => {{
+         let mut map = ::std::collections::HashMap::new();
+         $( map.insert($key, $val); )*
+         map
+    }}
+}
+
+pub mod scanner;
+pub mod ast;
 pub mod parser;
 pub mod semantic;
-pub mod statement;
-pub mod scanner;
+pub mod intepretor;
