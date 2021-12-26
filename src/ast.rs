@@ -148,7 +148,7 @@ impl Variable {
 
 #[derive(Debug, Clone)]
 pub struct IntegerLiteral{
-    value:String
+    pub value:String
 }
 
 impl IntegerLiteral {
@@ -156,7 +156,7 @@ impl IntegerLiteral {
 }
 #[derive(Debug, Clone)]
 pub struct DecimalLiteral{
-    value: String
+    pub value: String
 }
 
 impl DecimalLiteral {
@@ -165,7 +165,7 @@ impl DecimalLiteral {
 
 #[derive(Debug, Clone)]
 pub struct StringLiteral{
-    value: String
+    pub value: String
 }
 
 impl StringLiteral {
@@ -174,7 +174,7 @@ impl StringLiteral {
 
 #[derive(Debug, Clone)]
 pub struct BooleanLiteral{
-    value : String
+    pub value : String
 }
 
 impl BooleanLiteral {

@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use crate::{
     ast::{
-        Binary, Block, Expression, ExpressionStatement, FunctionCall, FunctionDecl, IntegerLiteral,
-        Prog, Statement, Variable, VariableDecl,DecimalLiteral,BooleanLiteral,StringLiteral,
+        Binary, Block, BooleanLiteral, DecimalLiteral, Expression, ExpressionStatement,
+        FunctionCall, FunctionDecl, IntegerLiteral, Prog, Statement, StringLiteral, Variable,
+        VariableDecl,
     },
     scanner::{Scanner, K_KEYWORD_FUNCTION},
     scanner::{Token, K_KEYWORD_LET},
@@ -11,42 +12,8 @@ use crate::{
 
 lazy_static! {
     static ref OP_SPEC: HashMap<&'static str, i32> = {
-        let mut m = HashMap::new();
-        m.insert("=", 2);
-        m.insert("=", 2);
-        m.insert("+=", 2);
-        m.insert("-=", 2);
-        m.insert("*=", 2);
-        m.insert("-=", 2);
-        m.insert("%=", 2);
-        m.insert("&=", 2);
-        m.insert("|=", 2);
-        m.insert("^=", 2);
-        m.insert("~=", 2);
-        m.insert("<<=", 2);
-        m.insert(">>=", 2);
-        m.insert(">>>=", 2);
-        m.insert("||", 4);
-        m.insert("&&", 5);
-        m.insert("|", 6);
-        m.insert("^", 7);
-        m.insert("&", 8);
-        m.insert("==", 9);
-        m.insert("===", 9);
-        m.insert("!=", 9);
-        m.insert("!==", 9);
-        m.insert(">", 10);
-        m.insert(">=", 10);
-        m.insert("<", 10);
-        m.insert("<=", 10);
-        m.insert("<<", 11);
-        m.insert(">>", 11);
-        m.insert(">>>", 11);
-        m.insert("+", 12);
-        m.insert("-", 12);
-        m.insert("*", 13);
-        m.insert("/", 13);
-        m.insert("%", 13);
+        let m = hashmap!["="=>2,"+="=>2,"-="=>2,"*="=>2,"/="=>2,"%="=>2,"&="=>2,"|="=>2,"^="=>2,"<<="=>2,">>="=>2,"||"=>4,"&&"=>5,"|"=>6,
+        "^"=>7,"&"=>8,"=="=>9,"!="=>9,">"=>10,">="=>10,"<"=>10,"<="=>10,"<<"=>11,">>"=>11,"+"=>12,"-"=>12,"*"=>13,"/"=>13,"%"=>13];
         m
     };
 }
@@ -62,7 +29,7 @@ lazy_static! {
  * statementList = (variableDecl | functionDecl | expressionStatement)+ ;
  * variableDecl : 'let' Identifier typeAnnotation？ ('=' singleExpression) ';';
  * typeAnnotation : ':' typeName;
- * functionDecl: "function" Identifier "(" ")"  functionBody;
+ * functionDecl: "fn" Identifier "(" ")"  functionBody;
  * functionBody : '{' statementList? '}' ;
  * statement: functionDecl | expressionStatement;
  * expressionStatement: expression ';' ;
@@ -118,15 +85,8 @@ impl Parser {
      */
     fn parse_statement(&mut self) -> Option<Statement> {
         let t = self.scanner.peek();
-        if t.text() == "(" {
-            let es = self.parse_expression_statement();
-            if let Some(e) = es {
-                return Some(Statement::ExpressionStatement(e));
-            }
-            return None;
-        }
         match t {
-            Token::Identifier(text) => {
+            Token::Keyword(text) => {
                 if text.as_str() == K_KEYWORD_FUNCTION {
                     let fd = self.parse_function_decl();
                     if let Some(f) = fd {
@@ -141,8 +101,10 @@ impl Parser {
                     return None;
                 }
             }
+            Token::Identifier(_)
             | Token::BooleanLiteral(_)
             | Token::StringLiteral(_)
+            | Token::IntegerLiteral(_)
             | Token::DecimalLiteral(_) => {
                 let es = self.parse_expression_statement();
                 if let Some(e) = es {
@@ -150,14 +112,21 @@ impl Parser {
                 }
                 return None;
             }
-            _ => {
-                println!(
-                    "can not recognize a expression starting with {}",
-                    self.scanner.peek().text()
-                );
-                return None;
+            Token::Seperator(t) => {
+                if t.as_str() == "(" {
+                    let es = self.parse_expression_statement();
+                    if let Some(e) = es {
+                        return Some(Statement::ExpressionStatement(e));
+                    }
+                    return None;
+                }
             }
+            _ => {}
         }
+        println!(
+            "can not recognize a expression starting with {}",
+            self.scanner.peek().text()
+        );
         None
     }
     /**
@@ -171,7 +140,7 @@ impl Parser {
         let t = self.scanner.next();
         if let Token::Identifier(text) = t {
             let val_name = text;
-            let mut val_type = "init".to_owned();
+            let mut val_type = "any".to_owned();
             let mut init: Option<Expression> = None;
             let mut t1 = self.scanner.peek();
             if t1.text() == ":" {
@@ -195,11 +164,11 @@ impl Parser {
             t1 = self.scanner.peek();
             if t1.text() == ";" {
                 self.scanner.next();
-                let mut initExpression: Option<Box<Expression>> = None;
+                let mut init_expression: Option<Box<Expression>> = None;
                 if let Some(t) = init {
-                    initExpression = Some(Box::new(t));
+                    init_expression = Some(Box::new(t));
                 }
-                return Some(VariableDecl::new(val_name, val_type, initExpression));
+                return Some(VariableDecl::new(val_name, val_type, init_expression));
             }
         } else {
             println!(
@@ -213,15 +182,15 @@ impl Parser {
     /**
      * 解析函数声明
      * 语法规则：
-     * functionDecl: "function" Identifier "(" ")"  functionBody;
+     * functionDecl: "fn" Identifier "(" ")"  functionBody;
      * 返回值：
-     * nil-意味着解析过程出错。
+     * None-意味着解析过程出错。
      */
     fn parse_function_decl(&mut self) -> Option<FunctionDecl> {
         // 跳过函数关键字
         self.scanner.next();
         let t = self.scanner.next();
-        if let Token::Identifier(text_t) = t {
+        if let Token::Identifier(fn_name) = t {
             //读取"("和")"
             let t1 = self.scanner.next();
             if t1.text() == "(" {
@@ -229,11 +198,12 @@ impl Parser {
                 if t2.text() == ")" {
                     let b = self.parse_function_body();
                     if let Some(body) = b {
-                        return Some(FunctionDecl::new(text_t, body));
+                        return Some(FunctionDecl::new(fn_name, body));
+                    } else {
+                        println!("error parsing function body in function declaration");
                     }
                 } else {
-                    println!(
-                        "expected a ')' in FunctionDecl, while we got a '{}'",
+                    println!("error parsing function body expected a ')' in FunctionDecl, while we got a '{}'",
                         t2.text()
                     );
                 }
@@ -243,68 +213,18 @@ impl Parser {
                     t1.text()
                 );
             }
-        }
-        None
-    }
-    /**
-     * 解析函数调用
-     * 语法规则：
-     * functionCall : Identifier '(' parameterList? ')' ;
-     * parameterList : StringLiteral (',' StringLiteral)* ;
-     */
-    fn parse_function_call(&mut self) -> Option<FunctionCall> {
-        let mut params: Vec<Expression> = vec![];
-        let t = self.scanner.next();
-        if let Token::Identifier(text) = t {
-            let t1 = self.scanner.next();
-            if t1.text() == "(" {
-                let mut t2 = self.scanner.next();
-                while t2.text() != ")" {
-                    let exp = self.parse_expression();
-                    if let Some(t) = exp {
-                        params.push(t);
-                    } else {
-                        println!(
-                            "expected parameters in function call, while we got a '{}'",
-                            t2.text()
-                        );
-                        return None;
-                    }
-                    t2 = self.scanner.next();
-                    if t2.text() != ")" {
-                        if t2.text() == "," {
-                            t2 = self.scanner.next()
-                        } else {
-                            println!(
-                                "expected a , in function call, while we got a '{}'",
-                                t2.text()
-                            );
-                            return None;
-                        }
-                    }
-                }
-                // 消解掉一个;
-                t2 = self.scanner.next();
-                if t2.text() == ";" {
-                    return Some(FunctionCall::new(text, params, None));
-                } else {
-                    println!(
-                        "expected ; in function call, while we got a '{}'",
-                        t2.text()
-                    );
-                    return None;
-                }
-            }
+        } else {
+            println!("expect a function name, while we got a '{}'", t.text());
         }
         None
     }
     /**
      * 解析函数体
      * 语法规则：
-     * functionBody : '{' functionCall* '}' ;
+     * functionBody : '{' statement* '}' ; //宫老师ts版本是functionCall是错误的，改成了statement
      */
     fn parse_function_body(&mut self) -> Option<Block> {
-        let t = self.scanner.next();
+        let t = self.scanner.peek();
         if t.text() == "{" {
             self.scanner.next();
             let stmts = self.parse_statement_list();
@@ -372,6 +292,7 @@ impl Parser {
         if let Some(mut exp1) = exp1 {
             let mut t = self.scanner.peek();
             let mut tprec = self.get_spec(t.text());
+
             //下面这个循环的意思是：只要右边出现的新运算符的优先级更高，
             //那么就把右边出现的作为右子节点。
             /*
@@ -397,6 +318,7 @@ impl Parser {
                     }
                 }
             }
+            return Some(exp1);
         } else {
             println!(
                 "can not recognize expression start with {}",
@@ -413,7 +335,7 @@ impl Parser {
         //知识点：以Identifier开头，可能是函数调用，也可能是一个变量，所以要再多向后看一个Token，
         //这相当于在局部使用了LL(2)算法。
         match t {
-            Token::Identifier(text) => {
+            Token::Identifier(variable_name) => {
                 if self.scanner.peek2().text() == "(" {
                     let fc = self.parse_function_call();
                     if let Some(f) = fc {
@@ -423,35 +345,90 @@ impl Parser {
                     }
                 } else {
                     self.scanner.next();
-                    return Some(Expression::Variable(Variable::new(text, None)));
+                    return Some(Expression::Variable(Variable::new(variable_name, None)));
                 }
             }
             Token::IntegerLiteral(i) => {
                 self.scanner.next();
                 return Some(Expression::IntegerLiteral(IntegerLiteral::new(i)));
-            },
-            Token::DecimalLiteral(f)=>{
+            }
+            Token::DecimalLiteral(f) => {
                 self.scanner.next();
-                return Some(Expression::DecimalLiteral(DecimalLiteral::new(f)))
-            },
+                return Some(Expression::DecimalLiteral(DecimalLiteral::new(f)));
+            }
             Token::StringLiteral(s) => {
                 self.scanner.next();
                 return Some(Expression::StringLiteral(StringLiteral::new(s)));
             }
-            _=>()
+            Token::BooleanLiteral(b) => {
+                self.scanner.next();
+                return Some(Expression::BooleanLiteral(BooleanLiteral::new(b)));
+            }
+            Token::NullLiteral => {
+                self.scanner.next();
+                return Some(Expression::NullLiteral);
+            }
+            _ => (),
         }
-        if t.text() == "("{
+        if t.text() == "(" {
             self.scanner.next();
             let exp = self.parse_expression();
             let t1 = self.scanner.peek();
-            if t1.text() == ")"{
+            if t1.text() == ")" {
                 self.scanner.next();
                 return exp;
-            }else{
-                println!("expecting a ) at the end of primary expression, while we got a '{}'",t.text());
+            } else {
+                println!(
+                    "expecting a ) at the end of primary expression, while we got a '{}'",
+                    t.text()
+                );
             }
-        }else{
-            println!("can not recognize an expression starting with {}",t.text());
+        } else {
+            println!("can not recognize an expression starting with {}", t.text());
+        }
+        None
+    }
+    /**
+     * 解析函数调用
+     * 语法规则：
+     * functionCall : Identifier '(' parameterList? ')' ;
+     * parameterList : StringLiteral (',' StringLiteral)* ;
+     */
+    fn parse_function_call(&mut self) -> Option<FunctionCall> {
+        let mut params: Vec<Expression> = vec![];
+        let t = self.scanner.next();
+        if let Token::Identifier(fn_name) = t {
+            let mut t1 = self.scanner.next();
+            if t1.text() == "(" {
+                t1 = self.scanner.peek();
+                while t1.text() != ")" {
+                    let exp = self.parse_expression();
+                    if let Some(t) = exp {
+                        params.push(t);
+                    } else {
+                        println!(
+                            "expected parameters in function call, while we got a '{}'",
+                            t1.text()
+                        );
+                        return None;
+                    }
+                    t1 = self.scanner.peek();
+                    if t1.text() != ")" {
+                        if t1.text() == "," {
+                            t1 = self.scanner.next()
+                        } else {
+                            println!(
+                                "expected a , in function call, while we got a '{}'",
+                                t1.text()
+                            );
+                            return None;
+                        }
+                    }
+                }
+                // 消解掉)
+                self.scanner.next();
+                return Some(FunctionCall::new(fn_name, params, None));
+            }
         }
         None
     }

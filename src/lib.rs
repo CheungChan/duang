@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate lazy_static;
 
+
+//自定义set宏
 macro_rules! set {
     ( $( $x:expr ),* ) => {  // Match zero or more comma delimited items
         {
@@ -13,9 +15,10 @@ macro_rules! set {
     };
 }
 
+// 自定义hashmap宏
 macro_rules! hashmap {
-    ($( $key: expr ; $val: expr ),*) => {{
-         let mut map = ::std::collections::HashMap::new();
+    ($( $key: expr => $val: expr ),*) => {{
+         let mut map = std::collections::HashMap::new();
          $( map.insert($key, $val); )*
          map
     }}

@@ -3,9 +3,9 @@ use duang::{
     parser::Parser,
     scanner::Scanner,
     scanner::{CharStream, Token},
-    semantic::RefResolver,
+    semantic::{RefResolver, Symbol, SymTable, Enter},
 };
-use std::{env, fs};
+use std::{env, fs, time::Duration, thread};
 
 fn main() {
     let verbose = env::var("DUANG_DEBUG").unwrap_or("0".into()) == "1";
@@ -38,15 +38,16 @@ fn main() {
                 if verbose {
                     println!("{:?}", a)
                 }
+                // thread::sleep(Duration::from_secs(1))
             }
         }
     }
-    let t = Scanner::new(CharStream::new(code));
+    let scanner = Scanner::new(CharStream::new(code));
     // 语法分析
     if verbose {
         println!("语法分析");
     }
-    let prog = Parser::new(t).parse_prog();
+    let mut prog = Parser::new(scanner).parse_prog();
     if verbose {
         println!("{:#?}", prog);
     }
@@ -54,7 +55,9 @@ fn main() {
     if verbose {
         println!("语义分析");
     }
-    RefResolver::new(&prog).vist_prog();
+    let mut sym_table = SymTable::new();
+    Enter::new(&mut sym_table).visit(& prog); //建立符号表
+    RefResolver::new(&sym_table).visit(& mut prog); //引用消解
     if verbose {
         println!("语法分析后的AST，注意自定义函数的调用已被消解:");
         println!("{:#?}", prog);
@@ -63,7 +66,7 @@ fn main() {
     if verbose {
         println!("运行程序");
     }
-    Intepretor::new(&prog).visit_prog();
+    Intepretor::new().visit(&prog);
     if verbose {
         println!("运行完成")
     }
