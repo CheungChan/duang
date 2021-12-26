@@ -1,6 +1,8 @@
+use std::any::Any;
+
 /** 语法分析
 * 包括了AST的数据结构和递归下降的语法解析程序
-*/
+ */
 
 
 /**
@@ -28,13 +30,29 @@ pub enum Expression {
     BooleanLiteral(BooleanLiteral),
     FunctionCall(FunctionCall),
 }
+
+impl Visit for Expression {
+    type Output = String;
+    fn visit(&self) -> String {
+        match self {
+            Expression::StringLiteral(s) => return s.visit(),
+            _ => String::new()
+        }
+    }
+}
+
 /**
  * 声明
  */
 #[derive(Debug, Clone)]
-pub enum Decl{
+pub enum Decl {
     VariableDecl(VariableDecl),
     FunctionDecl(FunctionDecl),
+}
+
+pub trait Visit {
+    type Output;
+    fn visit(&self) -> Self::Output;
 }
 
 /**
@@ -68,7 +86,7 @@ impl Block {
 pub struct VariableDecl {
     pub name: String,
     pub var_type: String,
-    pub init: Option<Box<Expression>>
+    pub init: Option<Box<Expression>>,
 }
 
 impl VariableDecl {
@@ -107,8 +125,10 @@ impl FunctionCall {
  */
 #[derive(Debug, Clone)]
 pub struct Binary {
-    pub op: String,            //运算符
-    pub exp1: Box<Expression>, // 左边的表达式
+    pub op: String,
+    //运算符
+    pub exp1: Box<Expression>,
+    // 左边的表达式
     pub exp2: Box<Expression>, //右边的表达式
 }
 
@@ -121,7 +141,7 @@ impl Binary {
 /**
 表达式语句
 就是在表达式后面加个分号
-*/
+ */
 #[derive(Debug, Clone)]
 pub struct ExpressionStatement {
     pub exp: Expression,
@@ -147,36 +167,65 @@ impl Variable {
 }
 
 #[derive(Debug, Clone)]
-pub struct IntegerLiteral{
-    pub value:String
+pub struct IntegerLiteral {
+    pub value: String,
 }
 
 impl IntegerLiteral {
     pub fn new(value: String) -> Self { Self { value } }
 }
+
+impl Visit for IntegerLiteral {
+    type Output = i32;
+    fn visit(&self) -> i32 {
+        self.value.parse().unwrap()
+    }
+}
+
 #[derive(Debug, Clone)]
-pub struct DecimalLiteral{
-    pub value: String
+pub struct DecimalLiteral {
+    pub value: String,
 }
 
 impl DecimalLiteral {
     pub fn new(value: String) -> Self { Self { value } }
 }
 
+impl Visit for DecimalLiteral {
+    type Output = f64;
+    fn visit(&self) -> f64 {
+        self.value.parse().unwrap()
+    }
+}
+
 #[derive(Debug, Clone)]
-pub struct StringLiteral{
-    pub value: String
+pub struct StringLiteral {
+    pub value: String,
 }
 
 impl StringLiteral {
     pub fn new(value: String) -> Self { Self { value } }
 }
 
+impl Visit for StringLiteral {
+    type Output = String;
+    fn visit(&self) -> String {
+        self.value.clone()
+    }
+}
+
 #[derive(Debug, Clone)]
-pub struct BooleanLiteral{
-    pub value : String
+pub struct BooleanLiteral {
+    pub value: String,
 }
 
 impl BooleanLiteral {
     pub fn new(value: String) -> Self { Self { value } }
+}
+
+impl Visit for BooleanLiteral {
+    type Output = bool;
+    fn visit(&self) -> bool {
+        self.value.parse().unwrap()
+    }
 }

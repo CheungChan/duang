@@ -159,6 +159,7 @@ impl<'a> RefResolver<'a> {
             if let SymKind::Function = s.kind {
                 if let Decl::FunctionDecl(function_decl) = s.decl {
                     function_call.decl = Some(function_decl);
+                    return;
                 }
             }
         }
