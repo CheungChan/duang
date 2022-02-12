@@ -10,114 +10,108 @@ import "fmt"
  * peek(): 返回当前的Token，但不移动当前位置。
  */
 type Tokenizer struct {
-	Steam     *CharStream
-	NextToken Token
+	charStream *CharStream
+	nextToken  Token
 }
 
 func NewTokenizer(steam *CharStream) *Tokenizer {
-	return &Tokenizer{Steam: steam, NextToken: Token{Kind: EOF, Text: ""}}
+	return &Tokenizer{charStream: steam, nextToken: KEOFToken}
 }
 func (a *Tokenizer) Next() Token {
-	//在第一次的时候，先parse一个Token
-	if a.NextToken.Kind == EOF && !a.Steam.EOF() {
-		a.NextToken = a.GetAToken()
-	}
-
-	lastToken := a.NextToken
+	lastToken := a.Peek()
 	//往前走一个Token
-	a.NextToken = a.GetAToken()
-	// fmt.Println(a.NextToken)
+	a.nextToken = a.getToken()
 	return lastToken
 }
 
 func (a *Tokenizer) Peek() Token {
-	if a.NextToken.Kind == EOF && !a.Steam.EOF() {
-		a.NextToken = a.GetAToken()
+	if a.nextToken.Kind == KTokenKindEOF && !a.charStream.EOF() {
+		a.nextToken = a.getToken()
 	}
-	return a.NextToken
+	return a.nextToken
 }
 
-//从字符串流中获取一个新Token。
-func (a *Tokenizer) GetAToken() Token {
-	a.SkipWhiteSpaces()
-	if a.Steam.EOF() {
-		return Token{Kind: EOF, Text: ""}
+// getToken 从字符串流中获取一个新Token。
+func (a *Tokenizer) getToken() Token {
+	a.skipWhiteSpaces()
+	if a.charStream.EOF() {
+		return KEOFToken
 	}
-	ch := a.Steam.Peek()
-	if a.IsLetter(ch) || a.IsUnderLine(ch) {
-		return a.ParserIdentifer()
+	ch := a.charStream.Peek()
+	if a.isLetter(ch) || a.isUnderLine(ch) {
+		return a.parserIdentifer()
 	}
 	switch ch {
 	case "\"":
-		return a.ParseStringLiteral()
+		return a.parseStringLiteral()
 	case "(", ")", "{", "}", ",", ";":
-		a.Steam.Next()
-		return Token{Kind: Seperator, Text: ch}
+		a.charStream.Next()
+		return Token{Kind: KTokenKindSeperator, Text: ch}
 	case "/":
 		{
-			a.Steam.Next()
-			ch1 := a.Steam.Peek()
+			a.charStream.Next()
+			ch1 := a.charStream.Peek()
 			switch ch1 {
 			case "*":
-				a.SkipMultiplelineComments()
-				return a.GetAToken()
+				a.skipMultipleLineComments()
+				return a.getToken()
 			case "/":
-				a.SkipSinglelineComments()
-				return a.GetAToken()
+				a.skipSingleLineComments()
+				return a.getToken()
 			case "=":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "/="}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "/="}
 			default:
-				return Token{Kind: Operator, Text: "/"}
+				return Token{Kind: KTokenKindOperator, Text: "/"}
 			}
 		}
 	case "+":
 		{
-			a.Steam.Next()
-			ch1 := a.Steam.Peek()
+			a.charStream.Next()
+			ch1 := a.charStream.Peek()
 			switch ch1 {
 			case "+":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "++"}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "++"}
 			case "=":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "+="}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "+="}
 			default:
-				return Token{Kind: Operator, Text: "+"}
+				return Token{Kind: KTokenKindOperator, Text: "+"}
 			}
 		}
 	case "-":
 		{
-			a.Steam.Next()
-			ch1 := a.Steam.Peek()
+			a.charStream.Next()
+			ch1 := a.charStream.Peek()
 			switch ch1 {
 			case "-":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "--"}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "--"}
 			case "=":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "-="}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "-="}
 			default:
-				return Token{Kind: Operator, Text: "-"}
+				return Token{Kind: KTokenKindOperator, Text: "-"}
 			}
 		}
 	case "*":
 		{
-			a.Steam.Next()
-			ch1 := a.Steam.Peek()
+			a.charStream.Next()
+			ch1 := a.charStream.Peek()
 			switch ch1 {
 			case "=":
-				a.Steam.Next()
-				return Token{Kind: Operator, Text: "*="}
+				a.charStream.Next()
+				return Token{Kind: KTokenKindOperator, Text: "*="}
 			default:
-				return Token{Kind: Operator, Text: "*"}
+				return Token{Kind: KTokenKindOperator, Text: "*"}
 			}
 		}
 	default:
 		{
-			fmt.Printf("can not recognize %s at %d col: %d\n", ch, a.Steam.Line, a.Steam.Col)
-			a.Steam.Next()
-			return a.GetAToken()
+			fmt.Printf("can not recognize %s at %d col: %d\n", ch, a.charStream.Line, a.charStream.Col)
+			a.charStream.Next()
+			return a.getToken()
 		}
 
 	}
@@ -126,41 +120,41 @@ func (a *Tokenizer) GetAToken() Token {
 /**
  * 跳过单行注释
  */
-func (a *Tokenizer) SkipSinglelineComments() {
+func (a *Tokenizer) skipSingleLineComments() {
 	//跳过第二个/，第一个之前已经跳过去了。
-	a.Steam.Next()
+	a.charStream.Next()
 	//往后一直找到回车或者eof
-	for a.Steam.Peek() != "\n" && !a.Steam.EOF() {
-		a.Steam.Next()
+	for a.charStream.Peek() != "\n" && !a.charStream.EOF() {
+		a.charStream.Next()
 	}
 }
 
 /**
  * 跳过多行注释
  */
-func (a *Tokenizer) SkipMultiplelineComments() {
+func (a *Tokenizer) skipMultipleLineComments() {
 	//跳过*，/之前已经跳过去了。
-	a.Steam.Next()
-	if !a.Steam.EOF() {
-		ch1 := a.Steam.Next()
+	a.charStream.Next()
+	if !a.charStream.EOF() {
+		ch1 := a.charStream.Next()
 		//往后一直找到回车或者eof
-		for !a.Steam.EOF() {
-			ch2 := a.Steam.Next()
+		for !a.charStream.EOF() {
+			ch2 := a.charStream.Next()
 			if ch1 == "*" && ch2 == "/" {
 				return
 			}
 			ch1 = ch2
 		}
 	}
-	fmt.Printf("can not found matching */ for mulitple line comments at: %d col:%d\n", a.Steam.Line, a.Steam.Col)
+	fmt.Printf("can not found matching */ for mulitple line comments at: %d col:%d\n", a.charStream.Line, a.charStream.Col)
 }
 
 /**
  * 跳过空白字符
  */
-func (a *Tokenizer) SkipWhiteSpaces() {
-	for a.IsWhiteSpace(a.Steam.Peek()) {
-		a.Steam.Next()
+func (a *Tokenizer) skipWhiteSpaces() {
+	for a.isWhiteSpace(a.charStream.Peek()) {
+		a.charStream.Next()
 	}
 }
 
@@ -169,18 +163,18 @@ func (a *Tokenizer) SkipWhiteSpaces() {
  * 目前只支持双引号，并且不支持转义。
  */
 
-func (a *Tokenizer) ParseStringLiteral() Token {
-	token := Token{Kind: StringLiteral, Text: ""}
+func (a *Tokenizer) parseStringLiteral() Token {
+	token := Token{Kind: KTokenKindStringLiteral, Text: ""}
 	//第一个字符不用判断，因为在调用者那里已经判断过了
-	a.Steam.Next()
-	for !a.Steam.EOF() && a.Steam.Peek() != "\"" {
-		token.Text += a.Steam.Next()
+	a.charStream.Next()
+	for !a.charStream.EOF() && a.charStream.Peek() != "\"" {
+		token.Text += a.charStream.Next()
 	}
-	if a.Steam.Peek() == "\"" {
+	if a.charStream.Peek() == "\"" {
 		//消化掉字符换末尾的引号
-		a.Steam.Next()
+		a.charStream.Next()
 	} else {
-		fmt.Printf("expect a \" at line: %d col: %d\n", a.Steam.Line, a.Steam.Col)
+		fmt.Printf("expect a \" at line: %d col: %d\n", a.charStream.Line, a.charStream.Col)
 	}
 	return token
 }
@@ -188,39 +182,36 @@ func (a *Tokenizer) ParseStringLiteral() Token {
 /**
  * 解析标识符。从标识符中还要挑出关键字。
  */
-func (a *Tokenizer) ParserIdentifer() Token {
-	token := Token{Kind: Identifier, Text: ""}
+func (a *Tokenizer) parserIdentifer() Token {
+	token := Token{Kind: KTokenKindIdentifier, Text: ""}
 	//第一个字符不用判断，因为在调用者那里已经判断过了
-	token.Text += a.Steam.Next()
+	token.Text += a.charStream.Next()
 	//读入后序字符
-	for !a.Steam.EOF() && a.IsLetterDigitUnderScore(a.Steam.Peek()) {
-		token.Text += a.Steam.Next()
+	for !a.charStream.EOF() && a.isLetterDigitUnderScore(a.charStream.Peek()) {
+		token.Text += a.charStream.Next()
 	}
 	//识别出关键字
-	if token.Text == Keyword_FUNCTION {
-		token.Kind = Keyword
+	if KKeywordAll.Contains(token.Text) {
+		token.Kind = KTokenKindKeyword
 	}
 	return token
 }
 
-func (a *Tokenizer) IsLetterDigitUnderScore(ch string) bool {
-	return ch >= "A" && ch <= "Z" ||
-		ch >= "a" && ch <= "z" ||
-		ch >= "0" && ch <= "9" ||
-		ch == "_"
+func (a *Tokenizer) isLetterDigitUnderScore(ch string) bool {
+	return a.isLetter(ch) || a.isDigit(ch)
 }
 
-func (a *Tokenizer) IsLetter(ch string) bool {
+func (a *Tokenizer) isLetter(ch string) bool {
 	return ch >= "A" && ch <= "Z" || ch >= "a" && ch <= "z"
 }
 
-func (a *Tokenizer) IsDigit(ch string) bool {
+func (a *Tokenizer) isDigit(ch string) bool {
 	return ch >= "0" && ch <= "9"
 }
-func (a *Tokenizer) IsWhiteSpace(ch string) bool {
+func (a *Tokenizer) isWhiteSpace(ch string) bool {
 	return ch == " " || ch == "\n" || ch == "\t"
 }
 
-func (a *Tokenizer) IsUnderLine(ch string) bool {
+func (a *Tokenizer) isUnderLine(ch string) bool {
 	return ch == "_"
 }

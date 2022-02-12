@@ -3,11 +3,11 @@ package lib
 import "fmt"
 
 type Parser struct {
-	Tokenizer *Tokenizer
+	tokenizer *Tokenizer
 }
 
-func NewParser(tokenizer *Tokenizer) Parser {
-	return Parser{Tokenizer: tokenizer}
+func NewParser(tokenizer *Tokenizer) *Parser {
+	return &Parser{tokenizer: tokenizer}
 }
 
 /**
@@ -16,24 +16,21 @@ func NewParser(tokenizer *Tokenizer) Parser {
  * prog = (functionDecl | functionCall)* ;
  */
 func (a Parser) ParseProg() *Prog {
-	stmts := make([]IStatement, 0)
-	var stmt IStatement
-	token := a.Tokenizer.Peek()
-	for token.Kind != EOF {
-		if token.Kind == Keyword && token.Text == Keyword_FUNCTION {
-			stmt = a.ParseFunctionDecl()
-		} else if token.Kind == Identifier {
-			stmt = a.ParseFunctionCall()
-
-		} else {
-			stmt = nil
+	stmts := make([]Statement, 0)
+	var stmt Statement
+	token := a.tokenizer.Peek()
+	for token.Kind != KTokenKindEOF {
+		if token.Kind == KTokenKindKeyword && token.Text == KKeywordFunction {
+			stmt = a.parseFunctionDecl()
+		} else if token.Kind == KTokenKindIdentifier {
+			stmt = a.parseFunctionCall()
 		}
 		if stmt != nil {
 			stmts = append(stmts, stmt)
 		} else {
 			fmt.Println("unrecognized token " + token.Text)
 		}
-		token = a.Tokenizer.Peek()
+		token = a.tokenizer.Peek()
 	}
 	return NewProg(stmts)
 }
@@ -41,25 +38,25 @@ func (a Parser) ParseProg() *Prog {
 /**
 * 解析函数声明
 * 语法规则：
-* functionDecl: "function" Identifier "(" ")"  functionBody;
-     * 返回值：
-    * nil-意味着解析过程出错。
-*/
-func (a Parser) ParseFunctionDecl() *FunctionDecl {
-	//跳过关键字'function'
-	a.Tokenizer.Next()
-	t := a.Tokenizer.Next()
-	if t.Kind == Identifier {
+* functionDecl: "function" KTokenKindIdentifier "(" ")"  functionBody;
+* 返回值：
+* nil-意味着解析过程出错。
+ */
+func (a Parser) parseFunctionDecl() *FunctionDecl {
+	//跳过关键字'fn'
+	a.tokenizer.Next()
+	t := a.tokenizer.Next()
+	if t.Kind == KTokenKindIdentifier {
 		//读取"("和")"
-		t1 := a.Tokenizer.Next()
+		t1 := a.tokenizer.Next()
 		if t1.Text == "(" {
-			t2 := a.Tokenizer.Next()
+			t2 := a.tokenizer.Next()
 			if t2.Text == ")" {
-				b := a.ParseFunctionBody()
+				b := a.parseFunctionBody()
 				if b != nil {
 					//如果解析成功，从这里返回
 					n := NewFunctionDecl(t.Text, b)
-					return &n
+					return n
 				}
 
 			} else {
@@ -80,12 +77,12 @@ func (a Parser) ParseFunctionDecl() *FunctionDecl {
  * 语法规则：
  * functionBody : '{' functionCall* '}' ;
  */
-func (a Parser) ParseFunctionBody() *FunctionBody {
-	stmts := make([]*FunctionCall, 0)
-	t := a.Tokenizer.Next()
+func (a Parser) parseFunctionBody() *FunctionBody {
+	stmts := make([]Statement, 0)
+	t := a.tokenizer.Next()
 	if t.Text == "{" {
-		for a.Tokenizer.Peek().Kind == Identifier {
-			b := a.ParseFunctionCall()
+		for a.tokenizer.Peek().Kind == KTokenKindIdentifier {
+			b := a.parseFunctionCall()
 			if b != nil {
 				stmts = append(stmts, b)
 			} else {
@@ -93,10 +90,15 @@ func (a Parser) ParseFunctionBody() *FunctionBody {
 				return nil
 			}
 		}
-		t = a.Tokenizer.Next()
+		t = a.tokenizer.Next()
 		if t.Text == "}" {
-			n := NewFunctionBody(stmts)
-			return &n
+			// Statement数组转换为*FunctionCall数组
+			fcs := make([]*FunctionCall, 0)
+			for _, s := range stmts {
+				fcs = append(fcs, s.(*FunctionCall))
+			}
+			n := NewFunctionBody(fcs)
+			return n
 		} else {
 			fmt.Printf("expect a '}' in FunctionBody, while we got a %s\n", t.Text)
 			return nil
@@ -110,42 +112,40 @@ func (a Parser) ParseFunctionBody() *FunctionBody {
 /**
  * 解析函数调用
  * 语法规则：
- * functionCall : Identifier '(' parameterList? ')' ;
- * parameterList : StringLiteral (',' StringLiteral)* ;
+ * functionCall : KTokenKindIdentifier '(' parameterList? ')' ;
+ * parameterList : KTokenKindStringLiteral (',' KTokenKindStringLiteral)* ;
  */
-func (a Parser) ParseFunctionCall() *FunctionCall {
+func (a Parser) parseFunctionCall() *FunctionCall {
 	params := make([]string, 0)
-	t := a.Tokenizer.Next()
-	if t.Kind == Identifier {
-		t1 := a.Tokenizer.Next()
+	t := a.tokenizer.Next()
+	if t.Kind == KTokenKindIdentifier {
+		t1 := a.tokenizer.Next()
 		if t1.Text == "(" {
-			t2 := a.Tokenizer.Next()
+			t2 := a.tokenizer.Next()
 			//循环，读出所有参数
 			for t2.Text != ")" {
-				if t2.Kind == StringLiteral {
+				if t2.Kind == KTokenKindStringLiteral {
 					params = append(params, t2.Text)
 				} else {
 					fmt.Printf("expect a string literal parameter in FunctionCall, while we got a %s\n", t2.Text)
 					return nil
 				}
-				t2 = a.Tokenizer.Next()
+				t2 = a.tokenizer.Next()
 				if t2.Text != ")" {
 					if t2.Text == "," {
-						t2 = a.Tokenizer.Next()
+						t2 = a.tokenizer.Next()
 					} else {
 						fmt.Printf("expect a ',' in FunctionCall, while we got a %s\n", t2.Text)
 						return nil
 					}
 				}
 			}
-			t2 = a.Tokenizer.Next()
+			t2 = a.tokenizer.Peek()
 			if t2.Text == ";" {
-				n := NewFunctionCall(t.Text, params)
-				return &n
-			} else {
-				fmt.Printf("expect a ';' in FunctionCall, while we got a %s\n", t2.Text)
-				return nil
+				a.tokenizer.Next()
 			}
+			n := NewFunctionCall(t.Text, params)
+			return n
 		}
 	}
 	return nil

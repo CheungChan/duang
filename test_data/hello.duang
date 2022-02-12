@@ -5,7 +5,7 @@
 
 // single line comment will be ignored
 fn hello(){
-    println("hello world");
+    print("hello world")
 }
 
 /*
@@ -15,9 +15,10 @@ fn hello(){
 */
 // support function decl
 fn foo(){
-    // support nested function call
+    // support nested function call 支持省略函数调用末尾的;
     hello();
+    print("你好世界")
 }
 
 // support function call
-foo();
+foo()

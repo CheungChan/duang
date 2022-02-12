@@ -7,7 +7,8 @@ feature举例
 - [x] 实现函数声明
 - [x] 实现函数调用
 - [x] 实现函数嵌套调用
-- [x] 实现内置函数`println`
+- [x] 实现内置函数`print`
+- [x] 实现语句;可省略
 - [ ] 实现变量
 - [ ] 实现变量类型
 - [ ] 实现表达式
@@ -21,7 +22,7 @@ feature举例
 
 // single line comment will be ignored
 fn hello(){
-    println("hello world");
+    print("hello world")
 }
 
 /*
@@ -31,33 +32,20 @@ fn hello(){
 */
 // support function decl
 fn foo(){
-    // support nested function call
+    // support nested function call 支持省略函数调用末尾的;
     hello();
+    print("你好世界")
 }
 
 // support function call
-foo();
-```
-
-项目编译
-```bash
-go build -o build/duang main.go
+foo()
 ```
 
 运行duang程序：
 ```bash
-./build/duang -f test_data/hello.duang
+./duang test_data/hello.duang
 ```
-
-输出
-
-![](https://img.azhangbaobao.cn/img/20211126175741.png)
-
 verbose模式运行duang程序（会输出AST分析过程)：
 ```bash
-./build/duang -f test_data/hello.duang -v true
+export DUANG_VERBOSE=1 && ./duang test_data/hello.duang
 ```
-
-输出
-
-![](https://img.azhangbaobao.cn/img/20211126175650.png)
