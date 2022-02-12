@@ -1,9 +1,9 @@
 package main
 
 import (
-	"duang/lib"
-	"flag"
+	"duang/duang"
 	"fmt"
+	"os"
 
 	"github.com/gogf/gf/os/gfile"
 )
@@ -11,13 +11,14 @@ import (
 /////////////////////////////////////////////////////////////////////////
 // 主程序
 func main() {
-	var filename string
-	var verbose bool
-	flag.StringVar(&filename, "f", "", "源代码文件地址")
-	flag.BoolVar(&verbose, "v", false, "是否开启verbose模式")
-	flag.Parse()
+	if len(os.Args) != 2 {
+		fmt.Println("HELP: duang xxx.duang")
+		return
+	}
+	var filename = os.Args[1]
+	var verbose = os.Getenv("DUANG_VERBOSE") == "1"
 	if !gfile.Exists(filename) {
-		fmt.Println("源码文件不存在")
+		fmt.Printf("%s, file does not exist", filename)
 		return
 	}
 	program := gfile.GetContents(filename)
@@ -28,23 +29,22 @@ func main() {
 	if verbose {
 		fmt.Println("开始词法分析")
 	}
-	tokenNizer := lib.NewTokenizer(lib.NewCharStream(program))
-	for tokenNizer.Peek().Kind != lib.EOF {
-		tokenNizer.Next()
+	tokennizer := duang.NewTokenizer(duang.NewCharStream(program))
+	for tokennizer.Peek().Kind != duang.KTokenKindEOF {
+		tokennizer.Next()
 	}
 	if verbose {
 		fmt.Println("词法分析完成，开始语法分析")
 	}
-	tokenNizer = lib.NewTokenizer(lib.NewCharStream(program)) //重置tokenizer,回到开头。
-
-	prog := lib.NewParser(tokenNizer).ParseProg()
+	tokennizer = duang.NewTokenizer(duang.NewCharStream(program)) //重置tokenizer,回到开头。
+	prog := duang.NewParser(tokennizer).ParseProg()
 	if verbose {
 		fmt.Println("语法分析后的AST:")
 		prog.Dump("")
 		fmt.Println("开始语义分析")
 	}
 	//语义分析
-	lib.NewRefReolver().VisitProg(prog)
+	duang.NewRefResolver(prog).Run()
 	if verbose {
 		fmt.Println("语义分析后的AST： 注意自定义函数的调用已被消解:")
 		prog.Dump("")
@@ -53,7 +53,7 @@ func main() {
 
 	}
 	//运行程序
-	retVal := lib.NewInterpretor().VisitProg(prog)
+	retVal := duang.NewInterpreter(*prog).Run()
 	if verbose {
 		fmt.Printf("程序返回值 %+v", retVal)
 	}
