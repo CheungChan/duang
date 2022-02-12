@@ -2,42 +2,6 @@ package lib
 
 import "fmt"
 
-/**
- * 对AST做遍历的Vistor。
- * 这是一个基类，定义了缺省的遍历方式。子类可以覆盖某些方法，修改遍历方式。
- */
-type AstVisiter struct{}
-
-func (a *AstVisiter) VisitProg(prog *Prog) interface{} {
-	var retVal interface{}
-	for _, x := range prog.Stmts {
-		f, ok := x.(*FunctionDecl)
-		if ok {
-			retVal = a.VisitFunctionDecl(*f)
-		} else {
-			c := x.(*FunctionCall)
-			retVal = a.VisitFunctionCall(c)
-		}
-	}
-	return retVal
-}
-
-func (a *AstVisiter) VisitFunctionDecl(f FunctionDecl) interface{} {
-	return a.VisitFunctionBody(f.Body)
-}
-
-func (a *AstVisiter) VisitFunctionBody(b *FunctionBody) interface{} {
-	var retVal interface{}
-	for _, x := range b.Stmts {
-		retVal = a.VisitFunctionCall(x)
-	}
-	return retVal
-}
-
-func (AstVisiter) VisitFunctionCall(c *FunctionCall) interface{} {
-	return nil
-}
-
 /////////////////////////////////////////////////////////////////////////
 // 语义分析
 // 对函数调用做引用消解，也就是找到函数的声明。
@@ -46,53 +10,51 @@ func (AstVisiter) VisitFunctionCall(c *FunctionCall) interface{} {
  * 遍历AST。如果发现函数调用，就去找它的定义。
  */
 type RefResolver struct {
-	AstVisiter
-	Prog *Prog
+	prog *Prog
 }
 
-func NewRefReolver() *RefResolver {
-	return &RefResolver{Prog: nil}
+func NewRefResolver(prog *Prog) *RefResolver {
+	return &RefResolver{prog: prog}
 }
 
-func (a *RefResolver) VisitProg(prog *Prog) interface{} {
-	a.Prog = prog
-	for _, x := range prog.Stmts {
+func (a *RefResolver) Run() interface{} {
+	for _, x := range a.prog.Stmts {
 		c, ok := x.(*FunctionCall)
 		if ok {
-			a.ResolveFunctionCall(prog, c)
+			a.resolveFunctionCall(a.prog, c)
 		} else {
 			d := x.(*FunctionDecl)
-			a.VisitFunctionDecl(*d)
+			a.visitFunctionDecl(*d)
 		}
 
 	}
 	return nil
 }
-func (a *RefResolver) VisitFunctionDecl(f FunctionDecl) interface{} {
-	return a.VisitFunctionBody(f.Body)
+func (a *RefResolver) visitFunctionDecl(f FunctionDecl) interface{} {
+	return a.visitFunctionBody(f.Body)
 }
 
-func (a *RefResolver) VisitFunctionBody(b *FunctionBody) interface{} {
-	if a.Prog != nil {
+func (a *RefResolver) visitFunctionBody(b *FunctionBody) interface{} {
+	if a.prog != nil {
 		for _, x := range b.Stmts {
-			a.ResolveFunctionCall(a.Prog, x)
+			a.resolveFunctionCall(a.prog, x)
 		}
 	}
 	return nil
 }
-func (a *RefResolver) ResolveFunctionCall(prog *Prog, c *FunctionCall) interface{} {
-	d := a.FindFunctionDecl(prog, c.Name)
+func (a *RefResolver) resolveFunctionCall(prog *Prog, c *FunctionCall) interface{} {
+	d := a.findFunctionDecl(prog, c.Name)
 	if d != nil {
-		c.Defination = d
+		c.Definition = d
 	} else {
-		if c.Name != BUILTIN_FUNCTION_PRINTLN {
+		if c.Name != KBuiltinFunctionPrintln {
 			fmt.Printf("Error: can not find denination of function %s\n", c.Name)
 
 		}
 	}
 	return nil
 }
-func (a *RefResolver) FindFunctionDecl(prog *Prog, name string) *FunctionDecl {
+func (a *RefResolver) findFunctionDecl(prog *Prog, name string) *FunctionDecl {
 	for _, x := range prog.Stmts {
 		d, ok := x.(*FunctionDecl)
 		if ok {
@@ -110,34 +72,34 @@ func (a *RefResolver) FindFunctionDecl(prog *Prog, name string) *FunctionDecl {
 /**
  * 遍历AST，执行函数调用。
  */
-type Intepretor struct {
-	AstVisiter
+type Interpreter struct {
+	prog Prog
 }
 
-func NewInterpretor() *Intepretor {
-	return &Intepretor{}
+func NewInterpreter(prog Prog) *Interpreter {
+	return &Interpreter{prog: prog}
 }
-func (a *Intepretor) VisitProg(prog *Prog) interface{} {
+func (a *Interpreter) Run() interface{} {
 	var retVal interface{}
-	for _, x := range prog.Stmts {
+	for _, x := range a.prog.Stmts {
 		c, ok := x.(*FunctionCall)
 		if ok {
-			retVal = a.RunFunction(c)
+			retVal = a.runFunction(c)
 		}
 	}
 	return retVal
 }
 
-func (a *Intepretor) VisitFunctionBody(b *FunctionBody) interface{} {
+func (a *Interpreter) visitFunctionBody(b *FunctionBody) interface{} {
 	var retVal interface{}
 	for _, x := range b.Stmts {
-		retVal = a.RunFunction(x)
+		retVal = a.runFunction(x)
 	}
 	return retVal
 }
 
-func (a *Intepretor) RunFunction(c *FunctionCall) interface{} {
-	if c.Name == BUILTIN_FUNCTION_PRINTLN { //内置函数
+func (a *Interpreter) runFunction(c *FunctionCall) interface{} {
+	if c.Name == KBuiltinFunctionPrintln { //内置函数
 		if len(c.Parameters) > 0 {
 			fmt.Println(c.Parameters[0])
 		} else {
@@ -146,8 +108,8 @@ func (a *Intepretor) RunFunction(c *FunctionCall) interface{} {
 		return nil
 	}
 	//找到函数定义，继续遍历函数体
-	if c.Defination != nil {
-		return a.VisitFunctionBody(c.Defination.Body)
+	if c.Definition != nil {
+		return a.visitFunctionBody(c.Definition.Body)
 	}
 	return nil
 }

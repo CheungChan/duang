@@ -17,40 +17,21 @@ type AstNode interface {
  * 语句
  * 其子类包括函数声明和函数调用
  */
-type IStatement interface {
+type Statement interface {
 	AstNode
-	isStatement()
-}
-type Statement struct{}
-
-func (a Statement) isStatement() {}
-func (a Statement) Dump(prefix string) {
-	fmt.Printf("%s Statements\n", prefix)
-}
-func IsStatementNode(node interface{}) bool {
-	switch node.(type) {
-	case *FunctionDecl:
-		return IsFunctionDeclNode(node)
-	case *FunctionCall:
-		return IsFunctionCallNode(node)
-	case *FunctionBody:
-		return IsFunctionBodyNode(node)
-	default:
-		return false
-	}
 }
 
 /**
  * 程序节点，也是AST的根节点
  */
 type Prog struct {
-	Stmts []IStatement
+	Stmts []Statement
 }
 
-func NewProg(stmt []IStatement) *Prog {
+func NewProg(stmt []Statement) *Prog {
 	return &Prog{Stmts: stmt}
 }
-func (a Prog) Dump(prefix string) {
+func (a *Prog) Dump(prefix string) {
 	fmt.Printf("%sP rog\n", prefix)
 	for _, x := range a.Stmts {
 		x.Dump(prefix + "\t")
@@ -61,22 +42,14 @@ func (a Prog) Dump(prefix string) {
  * 函数声明节点
  */
 type FunctionDecl struct {
-	Statement
 	Name string
 	Body *FunctionBody
 }
 
-func NewFunctionDecl(name string, body *FunctionBody) FunctionDecl {
-	return FunctionDecl{Name: name, Body: body}
+func NewFunctionDecl(name string, body *FunctionBody) *FunctionDecl {
+	return &FunctionDecl{Name: name, Body: body}
 }
 
-func IsFunctionDeclNode(node interface{}) bool {
-	v, ok := node.(*FunctionDecl)
-	if !ok {
-		return false
-	}
-	return v != nil
-}
 func (a *FunctionDecl) Dump(prefix string) {
 	fmt.Printf("%s FunctionDecl %s\n", prefix, a.Name)
 	a.Body.Dump(prefix)
@@ -86,20 +59,13 @@ func (a *FunctionDecl) Dump(prefix string) {
  * 函数体
  */
 type FunctionBody struct {
-	Statement
 	Stmts []*FunctionCall
 }
 
-func NewFunctionBody(stmts []*FunctionCall) FunctionBody {
-	return FunctionBody{Stmts: stmts}
+func NewFunctionBody(stmts []*FunctionCall) *FunctionBody {
+	return &FunctionBody{Stmts: stmts}
 }
-func IsFunctionBodyNode(node interface{}) bool {
-	v, ok := node.(*FunctionBody)
-	if !ok {
-		return false
-	}
-	return v != nil
-}
+
 func (a *FunctionBody) Dump(prefix string) {
 	fmt.Printf("%s FunctionBody\n", prefix)
 	for _, x := range a.Stmts {
@@ -111,27 +77,18 @@ func (a *FunctionBody) Dump(prefix string) {
  * 函数调用
  */
 type FunctionCall struct {
-	Statement
 	Name       string
 	Parameters []string
-	Defination *FunctionDecl //指向函数的声明
+	Definition *FunctionDecl //指向函数的声明
 }
 
-func NewFunctionCall(name string, parameters []string) FunctionCall {
-	return FunctionCall{Name: name, Parameters: parameters}
-}
-
-func IsFunctionCallNode(node interface{}) bool {
-	v, ok := node.(*FunctionCall)
-	if !ok {
-		return false
-	}
-	return v != nil
+func NewFunctionCall(name string, parameters []string) *FunctionCall {
+	return &FunctionCall{Name: name, Parameters: parameters}
 }
 
 func (a *FunctionCall) Dump(prefix string) {
 	r := "resolved"
-	if a.Defination == nil && a.Name != BUILTIN_FUNCTION_PRINTLN {
+	if a.Definition == nil && a.Name != KBuiltinFunctionPrintln {
 		r = "not resolved"
 	}
 	fmt.Printf("%s FunctionCall %s %s\n", prefix, a.Name, r)

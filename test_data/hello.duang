@@ -4,20 +4,21 @@
 */
 
 // single line comment will be ignored
-fn hello(){
-    println("hello world");
+def hello(){
+    print("hello world")
 }
 
 /*
-* mulitple line
+* multiple line
 * comment
 * will be ignored
 */
 // support function decl
-fn foo(){
-    // support nested function call
+def foo(){
+    // support nested function call 支持省略函数调用末尾的;
     hello();
+    print("你好世界")
 }
 
 // support function call
-foo();
+foo()

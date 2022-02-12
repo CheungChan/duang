@@ -1,63 +1,56 @@
 # 自制编程语言 duang
 
-语法上打算借鉴`Rust,Golang,Python,Java`的诸多长处，目前正在开发中。
+语法上打算博采众长，既有`python`的简洁性，又有`js`的大括号，有`go`语言的`go`关键字直接开协程，
+又没有`if err != nil {return err}`的困扰，恢复了好用的`try catch`,支持类型推断的静态类型
+编程语言。。目前正在开发中。语法方面完全根据最好的风格进行设计，摒弃现有 语言的糟粕。
+欢迎提一些语法上的建议。
 
-feature举例
+为中国人设计，不搞英文版。
 
+开发进度：
+- [x] 支持单行多行注释
 - [x] 实现函数声明
 - [x] 实现函数调用
 - [x] 实现函数嵌套调用
-- [x] 实现内置函数`println`
+- [x] 实现内置函数`print`
+- [x] 实现语句;可省略
 - [ ] 实现变量
 - [ ] 实现变量类型
 - [ ] 实现表达式
 
 语法举例：
-```rust
+```
 /*
  My first program language called "duang"
  Here you are!!
 */
 
 // single line comment will be ignored
-fn hello(){
-    println("hello world");
+def hello(){
+    print("hello world")
 }
 
 /*
-* mulitple line
+* multiple line
 * comment
 * will be ignored
 */
 // support function decl
-fn foo(){
-    // support nested function call
+def foo(){
+    // support nested function call 支持省略函数调用末尾的;
     hello();
+    print("你好世界")
 }
 
 // support function call
-foo();
-```
-
-项目编译
-```bash
-go build -o build/duang main.go
+foo()
 ```
 
 运行duang程序：
 ```bash
-./build/duang -f test_data/hello.duang
+./duang test_data/hello.duang
 ```
-
-输出
-
-![](https://img.azhangbaobao.cn/img/20211126175741.png)
-
 verbose模式运行duang程序（会输出AST分析过程)：
 ```bash
-./build/duang -f test_data/hello.duang -v true
+export DUANG_VERBOSE=1 && ./duang test_data/hello.duang
 ```
-
-输出
-
-![](https://img.azhangbaobao.cn/img/20211126175650.png)
