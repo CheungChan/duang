@@ -29,15 +29,15 @@ func main() {
 	if verbose {
 		fmt.Println("开始词法分析")
 	}
-	tokennizer := duang.NewTokenizer(duang.NewCharStream(program))
-	for tokennizer.Peek().Kind != duang.KTokenKindEOF {
-		tokennizer.Next()
+	tokenizer := duang.NewTokenizer(duang.NewCharStream(program))
+	for tokenizer.Peek().Kind != duang.KTokenKindEOF {
+		tokenizer.Next()
 	}
 	if verbose {
 		fmt.Println("词法分析完成，开始语法分析")
 	}
-	tokennizer = duang.NewTokenizer(duang.NewCharStream(program)) //重置tokenizer,回到开头。
-	prog := duang.NewParser(tokennizer).ParseProg()
+	tokenizer = duang.NewTokenizer(duang.NewCharStream(program)) //重置tokenizer,回到开头。
+	prog := duang.NewParser(tokenizer).ParseProg()
 	if verbose {
 		fmt.Println("语法分析后的AST:")
 		prog.Dump("")

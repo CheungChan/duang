@@ -1,6 +1,9 @@
 package duang
 
-import "fmt"
+import (
+	"fmt"
+	"unicode"
+)
 
 // Tokenizer 词法分析器
 type Tokenizer struct {
@@ -45,7 +48,7 @@ func (a *Tokenizer) getToken() Token {
 		return KEOFToken
 	}
 	ch := a.charStream.Peek()
-	if a.isLetter(ch) || a.isUnderLine(ch) {
+	if a.isLetter(ch) || a.isUnderLine(ch) || a.isHan(ch) {
 		return a.parserIdentifer()
 	}
 	switch ch {
@@ -380,7 +383,7 @@ func (a *Tokenizer) parserIdentifer() Token {
 }
 
 func (a *Tokenizer) isLetterDigitUnderScore(ch string) bool {
-	return a.isLetter(ch) || a.isDigit(ch)
+	return a.isLetter(ch) || a.isDigit(ch) || a.isHan(ch)
 }
 
 func (a *Tokenizer) isLetter(ch string) bool {
@@ -396,4 +399,11 @@ func (a *Tokenizer) isWhiteSpace(ch string) bool {
 
 func (a *Tokenizer) isUnderLine(ch string) bool {
 	return ch == "_"
+}
+
+func (a *Tokenizer) isHan(ch string) bool {
+	for _, v := range ch {
+		return unicode.Is(unicode.Han, v)
+	}
+	return false
 }
