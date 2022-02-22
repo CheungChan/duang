@@ -6,93 +6,232 @@ import "fmt"
 // 语法分析
 // 包括了AST的数据结构和递归下降的语法解析程序
 
-/**
- * 基类
- */
+// AstNode AST基类
 type AstNode interface {
+	// Dump 支持缩进打印
 	Dump(prefix string)
+	// accept 因为AstNode相对不变，而对AstNode的操作随着解引用，解释器等要频繁发生变化，所以采用visitor模式。
+	accept(visitor AstVisitor) interface{}
 }
 
-/**
- * 语句
- * 其子类包括函数声明和函数调用
- */
+type Block struct {
+	stmts []Statement
+}
+
+func NewBlock(stmts []Statement) *Block {
+	return &Block{stmts: stmts}
+}
+
+func (a *Block) Dump(prefix string) {
+	fmt.Println(prefix + "Block")
+	for _, stmt := range a.stmts {
+		stmt.Dump(prefix + "\t")
+	}
+}
+
+func (a *Block) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitBlock(a)
+}
+
+type Prog struct {
+	Block
+}
+
+func NewProg(stmts []Statement) *Prog {
+	return &Prog{Block{stmts: stmts}}
+}
+
+func (a *Prog) Dump(prefix string) {
+	fmt.Println(prefix + "Prog")
+	for _, x := range a.stmts {
+		x.Dump(prefix + "\t")
+	}
+}
+
+// Statement 语句
 type Statement interface {
 	AstNode
 }
 
-/**
- * 程序节点，也是AST的根节点
- */
-type Prog struct {
-	Stmts []Statement
+type StatementFake interface{}
+
+// Expression 表达式
+type Expression interface {
+	AstNode
 }
 
-func NewProg(stmt []Statement) *Prog {
-	return &Prog{Stmts: stmt}
+// Binary 二元表达式
+type Binary struct {
+	Expression
+	op   string
+	exp1 Expression // 左边表达式
+	exp2 Expression // 右边表达式
 }
-func (a *Prog) Dump(prefix string) {
-	fmt.Printf("%sP rog\n", prefix)
-	for _, x := range a.Stmts {
-		x.Dump(prefix + "\t")
+
+func NewBinary(op string, exp1 Expression, exp2 Expression) *Binary {
+	return &Binary{
+		op:   op,
+		exp1: exp1,
+		exp2: exp2,
 	}
 }
 
-/**
- * 函数声明节点
- */
-type FunctionDecl struct {
-	Name string
-	Body *FunctionBody
+func (a *Binary) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitBinary(a)
 }
 
-func NewFunctionDecl(name string, body *FunctionBody) *FunctionDecl {
-	return &FunctionDecl{Name: name, Body: body}
+func (a *Binary) Dump(prefix string) {
+	fmt.Println(prefix + "Binary: " + a.op)
+	a.exp1.Dump(prefix + "\t")
+	a.exp2.Dump(prefix + "\t")
+
 }
 
-func (a *FunctionDecl) Dump(prefix string) {
-	fmt.Printf("%s FunctionDecl %s\n", prefix, a.Name)
-	a.Body.Dump(prefix)
+// ExpressionStatement 表达式语句
+type ExpressionStatement struct {
+	Statement
+	exp Expression
 }
 
-/**
- * 函数体
- */
-type FunctionBody struct {
-	Stmts []*FunctionCall
+func NewExpressionStatement(exp Expression) *ExpressionStatement {
+	return &ExpressionStatement{exp: exp}
 }
 
-func NewFunctionBody(stmts []*FunctionCall) *FunctionBody {
-	return &FunctionBody{Stmts: stmts}
+func (a *ExpressionStatement) Dump(prefix string) {
+	fmt.Println(prefix + "ExpressionStatement")
+	a.exp.Dump(prefix + "\t")
 }
 
-func (a *FunctionBody) Dump(prefix string) {
-	fmt.Printf("%s FunctionBody\n", prefix)
-	for _, x := range a.Stmts {
-		x.Dump(prefix + "\t")
-	}
+func (a *ExpressionStatement) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitExpressionStatement(a)
 }
 
-/**
- * 函数调用
- */
 type FunctionCall struct {
-	Name       string
-	Parameters []string
-	Definition *FunctionDecl //指向函数的声明
+	AstNode
+	name       string
+	parameters []Expression
+	decl       *FunctionDecl //指向函数的声明
 }
 
-func NewFunctionCall(name string, parameters []string) *FunctionCall {
-	return &FunctionCall{Name: name, Parameters: parameters}
+func NewFunctionCall(name string, parameters []Expression) *FunctionCall {
+	return &FunctionCall{name: name, parameters: parameters}
 }
 
 func (a *FunctionCall) Dump(prefix string) {
 	r := "resolved"
-	if a.Definition == nil && a.Name != KBuiltinFunctionPrintln {
+	if a.decl == nil {
 		r = "not resolved"
 	}
-	fmt.Printf("%s FunctionCall %s %s\n", prefix, a.Name, r)
-	for _, x := range a.Parameters {
+	fmt.Printf("%s FunctionCall %s %s\n", prefix, a.name, r)
+	for _, x := range a.parameters {
 		fmt.Printf("%s\tparameters: %s\n", prefix, x)
 	}
+}
+
+func (a *FunctionCall) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitFunctionCall(a)
+}
+
+type Variable struct {
+	Expression
+	name string
+	decl *VariableDecl
+}
+
+func NewVariable(name string) *Variable {
+	return &Variable{name: name}
+}
+
+func (a *Variable) Dump(prefix string) {
+	r := "resolved"
+	if a.decl == nil {
+		r = "not resolved"
+	}
+	fmt.Println(prefix + "Variable: " + a.name + r)
+}
+
+func (a *Variable) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitVariable(a)
+}
+
+type StringLiteral struct {
+	Expression
+	value string
+}
+
+func NewStringLiteral(value string) *StringLiteral {
+	return &StringLiteral{value: value}
+}
+
+func (a *StringLiteral) Dump(prefix string) {
+	fmt.Println(prefix + a.value)
+}
+func (a *StringLiteral) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitStringLiteral(a)
+}
+
+type IntegerLiteral struct {
+	Expression
+	value int
+}
+
+func NewIntegerLiteral(value int) *IntegerLiteral {
+	return &IntegerLiteral{value: value}
+}
+
+func (a *IntegerLiteral) Dump(prefix string) {
+	fmt.Printf("%s%d\n", prefix, a.value)
+}
+
+func (a *IntegerLiteral) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitIntegerLiteral(a)
+}
+
+type DecimalLiteral struct {
+	Expression
+	value float32
+}
+
+func NewDecimalLiteral(value float32) *DecimalLiteral {
+	return &DecimalLiteral{value: value}
+}
+
+func (a *DecimalLiteral) Dump(prefix string) {
+	fmt.Printf("%s%f\n", prefix, a.value)
+}
+
+func (a *DecimalLiteral) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitDecimalLiteral(a)
+}
+
+type NullLiteral struct {
+	Expression
+}
+
+func NewNullLiteral() *NullLiteral {
+	return &NullLiteral{}
+}
+func (a *NullLiteral) Dump(prefix string) {
+	fmt.Printf("%snull\n", prefix)
+}
+
+func (a *NullLiteral) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitNullLiteral(a)
+}
+
+type BooleanLiteral struct {
+	Expression
+	value bool
+}
+
+func NewBooleanLiteral(value bool) *BooleanLiteral {
+	return &BooleanLiteral{value: value}
+}
+
+func (a *BooleanLiteral) Dump(prefix string) {
+	fmt.Printf("%s%t\n", prefix, a.value)
+}
+
+func (a *BooleanLiteral) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitBooleanLiteral(a)
 }

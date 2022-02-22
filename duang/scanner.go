@@ -5,18 +5,18 @@ import (
 	"unicode"
 )
 
-// Tokenizer 词法分析器
-type Tokenizer struct {
+// Scanner 词法分析器
+type Scanner struct {
 	charStream *CharStream
 	tokens     []Token
 }
 
-func NewTokenizer(steam *CharStream) *Tokenizer {
-	return &Tokenizer{charStream: steam, tokens: make([]Token, 0)}
+func NewScanner(steam *CharStream) *Scanner {
+	return &Scanner{charStream: steam, tokens: make([]Token, 0)}
 }
 
 //Next 返回当前的Token，并移向下一个Token
-func (a *Tokenizer) Next() Token {
+func (a *Scanner) Next() Token {
 	if len(a.tokens) == 0 {
 		return a.getToken()
 	}
@@ -26,7 +26,7 @@ func (a *Tokenizer) Next() Token {
 }
 
 // Peek 预读当前的Token，但不移动当前位置。
-func (a *Tokenizer) Peek() Token {
+func (a *Scanner) Peek() Token {
 	if len(a.tokens) == 0 {
 		a.tokens = append(a.tokens, a.getToken())
 	}
@@ -34,15 +34,19 @@ func (a *Tokenizer) Peek() Token {
 }
 
 // Peek2  预读第二个Token。
-func (a *Tokenizer) Peek2() Token {
+func (a *Scanner) Peek2() Token {
 	if len(a.tokens) < 2 {
 		a.tokens = append(a.tokens, a.getToken())
 	}
 	return a.tokens[1]
 }
 
+func (a *Scanner) AllRead() string {
+	return a.charStream.AllRead()
+}
+
 // getToken 从字符串流中获取一个新Token。
-func (a *Tokenizer) getToken() Token {
+func (a *Scanner) getToken() Token {
 	a.skipWhiteSpaces()
 	if a.charStream.EOF() {
 		return KEOFToken
@@ -243,8 +247,8 @@ func (a *Tokenizer) getToken() Token {
 				if !(ch1 >= "1" && ch1 <= "9") {
 					literal = "0"
 				} else {
-					fmt.Printf("0 cannot be followed by other digit now, at line: %d, col: %d",
-						a.charStream.Line, a.charStream.Col)
+					fail(fmt.Sprintf("0 cannot be followed by other digit now, at line: %d, col: %d",
+						a.charStream.Line, a.charStream.Col))
 					// 暂时先跳过去
 					a.charStream.Next()
 					return a.getToken()
@@ -290,7 +294,7 @@ func (a *Tokenizer) getToken() Token {
 		}
 	default:
 		{
-			fmt.Printf("can not recognize %s at %d col: %d\n", ch, a.charStream.Line, a.charStream.Col)
+			fail(fmt.Sprintf("can not recognize %s at %d col: %d\n", ch, a.charStream.Line, a.charStream.Col))
 			a.charStream.Next()
 			return a.getToken()
 		}
@@ -301,7 +305,7 @@ func (a *Tokenizer) getToken() Token {
 /**
  * 跳过单行注释
  */
-func (a *Tokenizer) skipSingleLineComments() {
+func (a *Scanner) skipSingleLineComments() {
 	//跳过第二个/，第一个之前已经跳过去了。
 	a.charStream.Next()
 	//往后一直找到回车或者eof
@@ -313,7 +317,7 @@ func (a *Tokenizer) skipSingleLineComments() {
 /**
  * 跳过多行注释
  */
-func (a *Tokenizer) skipMultipleLineComments() {
+func (a *Scanner) skipMultipleLineComments() {
 	//跳过*，/之前已经跳过去了。
 	a.charStream.Next()
 	if !a.charStream.EOF() {
@@ -327,13 +331,13 @@ func (a *Tokenizer) skipMultipleLineComments() {
 			ch1 = ch2
 		}
 	}
-	fmt.Printf("can not found matching */ for mulitple line comments at: %d col:%d\n", a.charStream.Line, a.charStream.Col)
+	fail(fmt.Sprintf("can not found matching */ for mulitple line comments at: %d col:%d\n", a.charStream.Line, a.charStream.Col))
 }
 
 /**
  * 跳过空白字符
  */
-func (a *Tokenizer) skipWhiteSpaces() {
+func (a *Scanner) skipWhiteSpaces() {
 	for a.isWhiteSpace(a.charStream.Peek()) {
 		a.charStream.Next()
 	}
@@ -344,7 +348,7 @@ func (a *Tokenizer) skipWhiteSpaces() {
  * 目前只支持双引号，并且不支持转义。
  */
 
-func (a *Tokenizer) parseStringLiteral() Token {
+func (a *Scanner) parseStringLiteral() Token {
 	token := Token{Kind: KTokenKindStringLiteral, Text: ""}
 	//第一个字符不用判断，因为在调用者那里已经判断过了
 	a.charStream.Next()
@@ -355,7 +359,7 @@ func (a *Tokenizer) parseStringLiteral() Token {
 		//消化掉字符换末尾的引号
 		a.charStream.Next()
 	} else {
-		fmt.Printf("expect a \" at line: %d col: %d\n", a.charStream.Line, a.charStream.Col)
+		fail(fmt.Sprintf("expect a \" at line: %d col: %d\n", a.charStream.Line, a.charStream.Col))
 	}
 	return token
 }
@@ -363,7 +367,7 @@ func (a *Tokenizer) parseStringLiteral() Token {
 /**
  * 解析标识符。从标识符中还要挑出关键字。
  */
-func (a *Tokenizer) parserIdentifer() Token {
+func (a *Scanner) parserIdentifer() Token {
 	token := Token{Kind: KTokenKindIdentifier, Text: ""}
 	//第一个字符不用判断，因为在调用者那里已经判断过了
 	token.Text += a.charStream.Next()
@@ -382,26 +386,26 @@ func (a *Tokenizer) parserIdentifer() Token {
 	return token
 }
 
-func (a *Tokenizer) isLetterDigitUnderScore(ch string) bool {
+func (a *Scanner) isLetterDigitUnderScore(ch string) bool {
 	return a.isLetter(ch) || a.isDigit(ch) || a.isHan(ch)
 }
 
-func (a *Tokenizer) isLetter(ch string) bool {
+func (a *Scanner) isLetter(ch string) bool {
 	return ch >= "A" && ch <= "Z" || ch >= "a" && ch <= "z"
 }
 
-func (a *Tokenizer) isDigit(ch string) bool {
+func (a *Scanner) isDigit(ch string) bool {
 	return ch >= "0" && ch <= "9"
 }
-func (a *Tokenizer) isWhiteSpace(ch string) bool {
+func (a *Scanner) isWhiteSpace(ch string) bool {
 	return ch == " " || ch == "\n" || ch == "\t"
 }
 
-func (a *Tokenizer) isUnderLine(ch string) bool {
+func (a *Scanner) isUnderLine(ch string) bool {
 	return ch == "_"
 }
 
-func (a *Tokenizer) isHan(ch string) bool {
+func (a *Scanner) isHan(ch string) bool {
 	for _, v := range ch {
 		return unicode.Is(unicode.Han, v)
 	}

@@ -29,14 +29,14 @@ func main() {
 	if verbose {
 		fmt.Println("开始词法分析")
 	}
-	tokenizer := duang.NewTokenizer(duang.NewCharStream(program))
+	tokenizer := duang.NewScanner(duang.NewCharStream(program))
 	for tokenizer.Peek().Kind != duang.KTokenKindEOF {
 		tokenizer.Next()
 	}
 	if verbose {
 		fmt.Println("词法分析完成，开始语法分析")
 	}
-	tokenizer = duang.NewTokenizer(duang.NewCharStream(program)) //重置tokenizer,回到开头。
+	tokenizer = duang.NewScanner(duang.NewCharStream(program)) //重置tokenizer,回到开头。
 	prog := duang.NewParser(tokenizer).ParseProg()
 	if verbose {
 		fmt.Println("语法分析后的AST:")
@@ -44,7 +44,9 @@ func main() {
 		fmt.Println("开始语义分析")
 	}
 	//语义分析
-	duang.NewRefResolver(prog).Run()
+	symTable := duang.NewSymTable()
+	duang.NewEnter(symTable).Visit(prog)
+	duang.NewRefResolver(symTable).Visit(prog)
 	if verbose {
 		fmt.Println("语义分析后的AST： 注意自定义函数的调用已被消解:")
 		prog.Dump("")
@@ -53,7 +55,7 @@ func main() {
 
 	}
 	//运行程序
-	retVal := duang.NewInterpreter(*prog).Run()
+	retVal := duang.NewInterpreter().Visit(prog)
 	if verbose {
 		fmt.Printf("程序返回值 %+v", retVal)
 	}

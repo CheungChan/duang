@@ -31,13 +31,13 @@
 - [x] 实现识别更多关键字和字面量
 - [x] 识别浮点数
 - [x] 支持汉语作为标识符
-- [ ] 实现变量的存取
-- [ ] 实现变量类型
-- [ ] 实现复杂表达式
+- [x] 实现变量的存取
+- [x] 实现变量类型
+- [x] 实现表达式
 - [ ] 实现作用域
 
 ## 语法举例：
-```
+```rust
 /*
 这是我的第一个duang程序，
 现在就在你面前，
@@ -46,12 +46,32 @@
 */
 
 // 单行注释将会被忽略
-def 左边(){
+fn 左边(){
     print("中华人民共和国万岁")
 }
 
-def 右边(){
+fn 右边(){
     print("世界人民大团结万岁")
+}
+
+fn 测试表达式(){
+    let a = 1 + 1
+    print(a)
+    let b = 4 * 2
+    print(b)
+    let c = 2.2 + 2.0
+    print(c)
+    let d = 1 == 1
+    print(d)
+}
+
+fn 测试变量类型(){
+  let d :int = 1 + 1
+  print(d)
+  let a: float = 1.3 * 2.0
+  print(a)
+  let b: bool = 1 > 2
+  print(b)
 }
 
 /*
@@ -61,7 +81,7 @@ def 右边(){
 * 支持中文字符
 */
 // 支持函数声明
-def 天安门(){
+fn 天安门(){
     // 支持函数嵌套调用，支持省略函数调用末尾的;
     print("我爱北京天安门")
     左边()
@@ -70,17 +90,19 @@ def 天安门(){
 
 // 支持函数调用
 天安门()
+测试表达式()
+测试变量类型()
 ```
 ### 下载duang
 https://github.com/CheungChan/duang/releases
 
 ## 运行duang程序：
 ```bash
-./duang test_data/我爱北京天安门.duang
+./duang test_data/hello.duang
 ```
 ## verbose模式运行duang程序（会输出AST分析过程)：
 ```bash
-export DUANG_VERBOSE=1 && ./duang test_data/我爱北京天安门.duang
+export DUANG_VERBOSE=1 && ./duang test_data/hello.duang
 ```
 
 ## 从宫老师的付费课程获得启发，大家多支持一下
