@@ -1,5 +1,21 @@
 # 自制编程语言 duang
 
+## 安装duang
+直接下载二进制解释器程序获取最新版
+
+https://github.com/CheungChan/duang/releases
+## 目前支持的语法demo脚本：
+<a href="./test_data/hello.duang">test_data/hello.duang</a>
+
+## 运行duang程序：
+```bash
+./duang test_data/hello.duang
+```
+demo里面支持的语法现在都支持。
+
+## 程序运行输出截图：
+![](https://img.azhangbaobao.cn/img/20220506020204.png)
+
 ## 语法设想
 1. 既有`python`的可读性
 2. 又有`js`的大括号
@@ -34,24 +50,15 @@
 - [x] 支持汉语作为标识符
 - [x] 实现变量的存取
 - [x] 实现变量类型
-- [x] 实现表达式
+- [x] 实现表达式(其实这个最难)
 - [ ] 实现作用域
 - [x] 支持在duang程序中直接import和调用go语言函数，扩展duang语言生态。
 
-## 语法demo举例：
-<a href="./test_data/hello.duang">hello.duang</a>
-### 下载duang
-https://github.com/CheungChan/duang/releases
 
-## 运行duang程序：
-```bash
-./duang test_data/hello.duang
-```
-demo里面支持的语法现在都支持。
+
+
 ## 开发者模式
 verbose模式运行duang程序（会输出AST分析过程)：
 ```bash
 export DUANG_VERBOSE=1 && ./duang test_data/hello.duang
 ```
-## 程序运行输出截图：
-![](https://img.azhangbaobao.cn/img/20220506020204.png)
