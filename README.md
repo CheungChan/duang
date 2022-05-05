@@ -94,6 +94,8 @@ fn 测试call(){
     let result = call("cal")
     print("下面是call的结果")
     print(result)
+    print("可以执行任意命令，获取结果")
+    print(call("ls -l"))
 }
 
 // 支持函数调用
