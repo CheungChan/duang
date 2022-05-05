@@ -257,6 +257,14 @@ func (a *Interpreter) VisitBinary(b *Binary) interface{} {
 		iv1 := valueV1.Float()
 		iv2 := valueV2.Float()
 		return calculate(b.op, iv1, iv2, &v1Left, a)
+	} else if typeV1.Name() == "string" && typeV2.Name() == "string" && b.op == "+" {
+		iv1 := valueV1.String()
+		iv2 := valueV2.String()
+		return iv1 + iv2
+	} else if typeV1.Name() == "string" && typeV2.Name() == "int" && b.op == "+" {
+		iv1 := valueV1.String()
+		iv2 := valueV2.Int()
+		return iv1 + gconv.String(iv2)
 	}
 	fail(fmt.Sprintf("表达式暂时只支持相同类型：left:%s, right:%s, op: %s", valueV1, valueV2, b.op))
 	return nil
