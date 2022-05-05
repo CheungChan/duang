@@ -3,6 +3,9 @@ package duang
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/util/gconv"
 )
 
 //Symbol 符号
@@ -89,7 +92,7 @@ func (a *RefResolver) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 	if symbol != nil && symbol.kind == KSymKindFunction {
 		functionCall.decl = symbol.decl.(*FunctionDecl)
 	} else {
-		if functionCall.name != KBuiltinFunctionPrintln { // 系统内置函数不报错
+		if !KBuiltinFunctionSet.Contains(functionCall.name) { // 系统内置函数不报错
 			fail("Error: cannot find declaration of function " + functionCall.name)
 		}
 	}
@@ -135,7 +138,8 @@ func (a *Interpreter) VisitFunctionDecl(functionDecl *FunctionDecl) interface{} 
 
 // VisitFunctionCall 运行函数调用。 根据函数定义执行函数体
 func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} {
-	if functionCall.name == KBuiltinFunctionPrintln {
+	switch functionCall.name {
+	case KBuiltinFunctionPrintln:
 		if len(functionCall.parameters) > 0 {
 			retVal := a.Visit(functionCall.parameters[0])
 			o, ok := retVal.(*LeftValue)
@@ -148,7 +152,22 @@ func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 			fmt.Println()
 		}
 		return 0
-	} else {
+	case KBuiltinFunctionCall:
+		switch len(functionCall.parameters) {
+		case 1:
+			retVal := a.Visit(functionCall.parameters[0])
+			o, ok := retVal.(*LeftValue)
+			if ok {
+				retVal = a.getVariableValue(o.variable.name)
+			}
+			cmdStr := gconv.String(retVal)
+			r, err := gproc.ShellExec(cmdStr)
+			if err != nil {
+				return err
+			}
+			return r
+		}
+	default:
 		if functionCall.decl != nil {
 			return a.VisitBlock(functionCall.decl.body)
 		}

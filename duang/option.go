@@ -66,8 +66,12 @@ const (
 	KLiteralTrue  = "true"
 	KLiteralFalse = "false"
 )
-const KBuiltinFunctionPrintln = "print"
+const (
+	KBuiltinFunctionPrintln = "print"
+	KBuiltinFunctionCall    = "call"
+)
 
+var KBuiltinFunctionSet = gset.NewStrSetFrom([]string{KBuiltinFunctionPrintln, KBuiltinFunctionCall}, false)
 var KEOFToken = Token{Kind: KTokenKindEOF, Text: ""}
 var KKeywordAll = gset.NewStrSetFrom([]string{
 	KKeywordImport,
