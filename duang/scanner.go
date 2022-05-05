@@ -404,7 +404,7 @@ func (a *Scanner) parserIdentifer() Token {
 }
 
 func (a *Scanner) isLetterDigitUnderScore(ch string) bool {
-	return a.isLetter(ch) || a.isDigit(ch) || a.isHan(ch)
+	return a.isLetter(ch) || a.isDigit(ch) || a.isHan(ch) || a.isUnderLine(ch)
 }
 
 func (a *Scanner) isLetter(ch string) bool {

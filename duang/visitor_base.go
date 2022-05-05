@@ -15,6 +15,7 @@ type AstVisitor interface {
 	VisitDecimalLiteral(exp *DecimalLiteral) interface{}
 	VisitNullLiteral(exp *NullLiteral) interface{}
 	VisitBooleanLiteral(exp *BooleanLiteral) interface{}
+	VisitImport(imp *ImportStatement) interface{}
 }
 
 type AstVisitorBase struct {
@@ -89,4 +90,8 @@ func (a AstVisitorBase) VisitNullLiteral(exp *NullLiteral) interface{} {
 
 func (a AstVisitorBase) VisitBooleanLiteral(exp *BooleanLiteral) interface{} {
 	return exp.value
+}
+
+func (a AstVisitorBase) VisitImport(imp *ImportStatement) interface{} {
+	return nil
 }

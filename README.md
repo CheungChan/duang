@@ -1,6 +1,6 @@
 # 自制编程语言 duang
 
-## 语法上打算博采众长
+## 语法设想
 1. 既有`python`的可读性
 2. 又有`js`的大括号
 3. 支持汉语标识符
@@ -21,12 +21,12 @@
 
 为中国人设计，不搞英文版。
 
-## 开发进度：
+## 开发进度（打✅的为已完成）：
 - [x] 支持单行多行注释
 - [x] 实现函数声明
 - [x] 实现函数调用
 - [x] 实现函数嵌套调用
-- [x] 实现内置函数`print` `printf` `call`
+- [x] 实现内置函数`print` `printf` `call` call可以直接调用系统命令获取返回值
 - [x] 实现语句;可省略
 - [x] demo可以运行起来
 - [x] 实现识别更多关键字和字面量
@@ -36,6 +36,7 @@
 - [x] 实现变量类型
 - [x] 实现表达式
 - [ ] 实现作用域
+- [x] 支持在duang程序中直接import和调用go语言函数，扩展duang语言生态。
 
 ## 语法demo举例：
 <a href="./test_data/hello.duang">hello.duang</a>
@@ -52,3 +53,5 @@ verbose模式运行duang程序（会输出AST分析过程)：
 ```bash
 export DUANG_VERBOSE=1 && ./duang test_data/hello.duang
 ```
+## 程序运行输出截图：
+![](https://img.azhangbaobao.cn/img/20220506020204.png)

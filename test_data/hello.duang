@@ -5,6 +5,9 @@
 欢迎大家多提语法方面的建议。
 */
 // 单行注释将会被忽略
+// 支持引入go语言写的函数了！！！！
+import "test_data/src/github.com/gocode/hello/hello.go"
+
 fn 左边(){
     print("中华人民共和国万岁")
 }
@@ -50,7 +53,7 @@ fn 天安门(){
 fn 测试call(){
     let result = call("cal")
     print("下面是call的结果\n",result)
-    print("可以执行任意命令，获取结果\n",call("ls -l"))
+    print("可以执行任意命令，获取结果\n",call("ls -l /tmp"))
     let me = call("whoami")
     printf("我的名字是\"%s\"\n", me)
     printf("当前登录用户有\n%s\n", call("who"))
@@ -59,7 +62,15 @@ fn 测试call(){
 fn main(){
     // 支持函数调用
     天安门()
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     测试表达式()
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     测试变量类型()
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     测试call()
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("调用go写的函数，虽然调用方式还不是很完美，函数签名受到限制但是终于能调用了！！！！！")
+    print(go_hello_hello("你好呀，go语言"))
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print(go_hello_word("你在干嘛呀"))
 }

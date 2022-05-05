@@ -1,8 +1,11 @@
 package duang
 
 import (
-	"github.com/gogf/gf/util/gconv"
+	"fmt"
+	"strings"
 	"syscall"
+
+	"github.com/gogf/gf/util/gconv"
 )
 
 var opPrec = map[string]int{"=": 2, "+=": 2, "-=": 2, "*=": 2, "/=": 2, "%=": 2, "&=": 2, "|=": 2, "^=": 2, "~=": 2,
@@ -44,17 +47,22 @@ func (a Parser) parseStatementList() []Statement {
 // 解析语句
 func (a Parser) parseStatement() StatementFake {
 	token := a.scanner.Peek()
-	if token.Kind == KTokenKindKeyword && token.Text == KKeywordFunction {
-		return a.parseFunctionDecl()
-	} else if token.Text == KKeywordLet {
-		return a.parseVariableDecl()
+	if token.Kind == KTokenKindKeyword {
+		switch token.Text {
+		case KKeywordImport:
+			return a.parseImportDecl()
+		case KKeywordFunction:
+			return a.parseFunctionDecl()
+		case KKeywordLet:
+			return a.parseVariableDecl()
+		}
 	} else if token.Kind == KTokenKindIdentifier || token.Kind == KTokenKindDecimalLiteral ||
 		token.Kind == KTokenKindIntegerLiteral || token.Kind == KTokenKindStringLiteral || token.Text == "(" {
 		return a.parseExpressionStatement()
-	} else {
-		fail("Can not recognize a expression starting with " + token.Text)
-		return nil
 	}
+	fail(fmt.Sprintf("Can not recognize a statement starting with %s", token.Text))
+	return nil
+
 }
 
 // 解析变量声明 variableDecl : 'let'? Identifier typeAnnotation？ ('=' singleExpression) ';';
@@ -216,12 +224,12 @@ func (a Parser) parseBinary(prec int) *Expression {
 				t = a.scanner.Peek()
 				tprec = a.getPrec(t.Text)
 			} else {
-				fail("can not recognize a expression starting with: " + t.Text)
+				fail("can not recognize a binary starting with: " + t.Text)
 			}
 		}
 		return &exp1
 	} else {
-		fail("can not recognize a expression starting with: " + a.scanner.Peek().Text)
+		fail("can not recognize a binary starting with: " + a.scanner.Peek().Text)
 	}
 	return nil
 }
@@ -309,5 +317,18 @@ func (a Parser) parseFunctionCall() *FunctionCall {
 			return n
 		}
 	}
+	return nil
+}
+
+func (a Parser) parseImportDecl() *ImportStatement {
+	//跳过关键字'import'
+	a.scanner.Next()
+	t := a.scanner.Next()
+	path := t.Text
+	if t.Kind == KTokenKindStringLiteral && strings.HasSuffix(path, ".go") {
+		//a.scanner.Next()
+		return &ImportStatement{Path: path}
+	}
+	fail("expecting a path after import, while we got a  " + t.Text)
 	return nil
 }

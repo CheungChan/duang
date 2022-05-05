@@ -2,12 +2,23 @@ package duang
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
+	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/util/gconv"
+	"github.com/switchupcb/yaegi/interp"
+	"github.com/switchupcb/yaegi/stdlib"
 )
+
+var interpreter *interp.Interpreter
+
+func init() {
+	interpreter = interp.New(interp.Options{})
+	interpreter.Use(stdlib.Symbols)
+}
 
 //Symbol 符号
 type Symbol struct {
@@ -80,6 +91,18 @@ func (a *Enter) VisitVariableDecl(variableDecl *VariableDecl) interface{} {
 type RefResolver struct {
 	AstVisitorBase
 	symTable *SymTable
+}
+
+func (a *RefResolver) VisitImport(imp *ImportStatement) interface{} {
+	path := imp.Path
+	path = gfile.Join(os.Getenv("IMPORT_PATH"), path)
+	if gfile.Exists(path) {
+		code := gfile.GetContents(path)
+		imp.Code = code
+		return nil
+	}
+	fail(fmt.Sprintf("can not import %s, not found", path))
+	return nil
 }
 
 func NewRefResolver(symTable *SymTable) *RefResolver {
@@ -193,7 +216,22 @@ func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 			return strings.TrimRight(r, "\n")
 		}
 	default:
-		if functionCall.decl != nil {
+		if strings.HasPrefix(functionCall.name, "go_") {
+			l := strings.SplitN(functionCall.name, "_", 3)
+			name := fmt.Sprintf("%s.%s", l[1], l[2])
+			v, err := interpreter.Eval(name)
+			if err != nil {
+				return err
+			}
+			f := v.Interface().(func(string) string)
+			retVal := a.Visit(functionCall.parameters[0])
+			o, ok := retVal.(*LeftValue)
+			if ok {
+				retVal = a.getVariableValue(o.variable.name)
+			}
+			msg := gconv.String(retVal)
+			return f(msg)
+		} else if functionCall.decl != nil {
 			return a.VisitBlock(functionCall.decl.body)
 		}
 	}
@@ -267,6 +305,13 @@ func (a *Interpreter) VisitBinary(b *Binary) interface{} {
 		return iv1 + gconv.String(iv2)
 	}
 	fail(fmt.Sprintf("表达式暂时只支持相同类型：left:%s, right:%s, op: %s", valueV1, valueV2, b.op))
+	return nil
+}
+func (a *Interpreter) VisitImport(imp *ImportStatement) interface{} {
+	_, err := interpreter.Eval(imp.Code)
+	if err != nil {
+		fail("import error:" + err.Error())
+	}
 	return nil
 }
 

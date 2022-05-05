@@ -235,3 +235,16 @@ func (a *BooleanLiteral) Dump(prefix string) {
 func (a *BooleanLiteral) accept(visitor AstVisitor) interface{} {
 	return visitor.VisitBooleanLiteral(a)
 }
+
+type ImportStatement struct {
+	Path string
+	Code string
+}
+
+func (a *ImportStatement) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitImport(a)
+}
+
+func (a *ImportStatement) Dump(prefix string) {
+	fmt.Println(prefix + "import: " + a.Path)
+}

@@ -22,6 +22,10 @@ func main() {
 		fmt.Printf("%s, file does not exist", filename)
 		return
 	}
+	var importPath = os.Getenv("IMPORT_PATH")
+	if importPath == "" {
+		importPath = gfile.MainPkgPath()
+	}
 	program := gfile.GetContents(filename)
 	if verbose {
 		fmt.Printf("源码程序：\n%s\n", program)
