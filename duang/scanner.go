@@ -353,7 +353,24 @@ func (a *Scanner) parseStringLiteral() Token {
 	//第一个字符不用判断，因为在调用者那里已经判断过了
 	a.charStream.Next()
 	for !a.charStream.EOF() && a.charStream.Peek() != "\"" {
-		token.Text += a.charStream.Next()
+		//token.Text += a.charStream.Next()
+		next := a.charStream.Next()
+		if next == "\\" {
+			nextNext := a.charStream.Next()
+			switch nextNext {
+			case "0":
+				next = ""
+			case "n":
+				next = "\n"
+			case "t":
+				next = "\t"
+			case "\"":
+				next = "\""
+			default:
+				fmt.Println("can not recognize \\%s", nextNext)
+			}
+		}
+		token.Text += next
 	}
 	if a.charStream.Peek() == "\"" {
 		//消化掉字符换末尾的引号

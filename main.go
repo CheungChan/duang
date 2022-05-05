@@ -1,9 +1,10 @@
 package main
 
 import (
-	"duang/duang"
 	"fmt"
 	"os"
+
+	"duang/duang"
 
 	"github.com/gogf/gf/os/gfile"
 )
@@ -25,6 +26,7 @@ func main() {
 	if verbose {
 		fmt.Printf("源码程序：\n%s\n", program)
 	}
+	program += "\nmain()\n"
 	//词法分析
 	if verbose {
 		fmt.Println("开始词法分析")

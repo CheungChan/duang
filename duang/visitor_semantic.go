@@ -3,6 +3,7 @@ package duang
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/util/gconv"
@@ -141,13 +142,37 @@ func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 	switch functionCall.name {
 	case KBuiltinFunctionPrintln:
 		if len(functionCall.parameters) > 0 {
-			retVal := a.Visit(functionCall.parameters[0])
-			o, ok := retVal.(*LeftValue)
-			if ok {
-				retVal = a.getVariableValue(o.variable.name)
+			params := make([]any, len(functionCall.parameters))
+			for i, p := range functionCall.parameters {
+				param := a.Visit(p)
+				o, ok := param.(*LeftValue)
+				if ok {
+					param = a.getVariableValue(o.variable.name)
+				}
+				params[i] = param
 			}
-			fmt.Println(retVal)
-
+			fmt.Println(params...)
+		} else {
+			fmt.Println()
+		}
+		return 0
+	case KBuiltinFunctionPrintf:
+		if len(functionCall.parameters) > 0 {
+			params := make([]any, len(functionCall.parameters))
+			for i, p := range functionCall.parameters {
+				param := a.Visit(p)
+				o, ok := param.(*LeftValue)
+				if ok {
+					param = a.getVariableValue(o.variable.name)
+				}
+				params[i] = param
+			}
+			paramFmt := gconv.String(params[0])
+			if len(functionCall.parameters) > 1 {
+				fmt.Printf(paramFmt, params[1:]...)
+			} else {
+				fmt.Printf(paramFmt)
+			}
 		} else {
 			fmt.Println()
 		}
@@ -165,7 +190,7 @@ func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 			if err != nil {
 				return err
 			}
-			return r
+			return strings.TrimRight(r, "\n")
 		}
 	default:
 		if functionCall.decl != nil {
