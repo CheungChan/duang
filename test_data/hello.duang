@@ -70,7 +70,7 @@ fn main(){
     测试call()
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     print("调用go写的函数，虽然调用方式还不是很完美，函数签名受到限制但是终于能调用了！！！！！")
-    print(go_hello_hello("你好呀，go语言"))
+    print(hello::hello("你好呀，go语言"))
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-    print(go_hello_word("你在干嘛呀"))
+    print(hello::channel("go chan支持测试"))
 }

@@ -59,7 +59,11 @@ func (a *Scanner) getToken() Token {
 	case "\"":
 		return a.parseStringLiteral()
 	case "(", ")", "{", "}", "[", "]", ",", ";", ":", "?", "@", "#":
-		a.charStream.Next()
+		ch2 := a.charStream.Next()
+		if ch == ":" && ch2 == ":" {
+			a.charStream.Next()
+			return Token{Kind: KTokenKindSeperator, Text: "::"}
+		}
 		return Token{Kind: KTokenKindSeperator, Text: ch}
 	case "/":
 		{

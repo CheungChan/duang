@@ -5,6 +5,7 @@ type AstVisitor interface {
 	VisitProg(prog *Prog) interface{}
 	VisitFunctionDecl(functionDecl *FunctionDecl) interface{}
 	VisitFunctionCall(functionCall *FunctionCall) interface{}
+	VisitGoFunctionCall(functionCall *GoFunctionCall) interface{}
 	VisitBlock(block *Block) interface{}
 	VisitVariableDecl(variableDecl *VariableDecl) interface{}
 	VisitBinary(exp *Binary) interface{}
@@ -93,5 +94,8 @@ func (a AstVisitorBase) VisitBooleanLiteral(exp *BooleanLiteral) interface{} {
 }
 
 func (a AstVisitorBase) VisitImport(imp *ImportStatement) interface{} {
+	return nil
+}
+func (a AstVisitorBase) VisitGoFunctionCall(imp *GoFunctionCall) interface{} {
 	return nil
 }

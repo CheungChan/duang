@@ -216,26 +216,29 @@ func (a *Interpreter) VisitFunctionCall(functionCall *FunctionCall) interface{} 
 			return strings.TrimRight(r, "\n")
 		}
 	default:
-		if strings.HasPrefix(functionCall.name, "go_") {
-			l := strings.SplitN(functionCall.name, "_", 3)
-			name := fmt.Sprintf("%s.%s", l[1], l[2])
-			v, err := interpreter.Eval(name)
-			if err != nil {
-				return err
-			}
-			f := v.Interface().(func(string) string)
-			retVal := a.Visit(functionCall.parameters[0])
-			o, ok := retVal.(*LeftValue)
-			if ok {
-				retVal = a.getVariableValue(o.variable.name)
-			}
-			msg := gconv.String(retVal)
-			return f(msg)
-		} else if functionCall.decl != nil {
+		if functionCall.decl != nil {
 			return a.VisitBlock(functionCall.decl.body)
 		}
 	}
 	return nil
+}
+
+func (a *Interpreter) VisitGoFunctionCall(goFunctionCall *GoFunctionCall) interface{} {
+	l := strings.SplitN(goFunctionCall.name, "::", 2)
+	name := fmt.Sprintf("%s.%s", l[0], l[1])
+	v, err := interpreter.Eval(name)
+	if err != nil {
+		return err
+	}
+	f := v.Interface().(func(string) string)
+	retVal := a.Visit(goFunctionCall.parameters[0])
+	o, ok := retVal.(*LeftValue)
+	if ok {
+		retVal = a.getVariableValue(o.variable.name)
+	}
+	msg := gconv.String(retVal)
+	return f(msg)
+
 }
 
 // VisitVariableDecl 变量声明，如果存在变量初始化部分，存下变量的值

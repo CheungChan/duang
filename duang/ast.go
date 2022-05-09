@@ -124,12 +124,37 @@ func (a *FunctionCall) Dump(prefix string) {
 	}
 	fmt.Printf("%s FunctionCall %s %s\n", prefix, a.name, r)
 	for _, x := range a.parameters {
-		fmt.Printf("%s\tparameters: %s\n", prefix, x)
+		fmt.Printf("%s\tparameters: %#v\n", prefix, x)
 	}
 }
 
 func (a *FunctionCall) accept(visitor AstVisitor) interface{} {
 	return visitor.VisitFunctionCall(a)
+}
+
+type GoFunctionCall struct {
+	AstNode
+	name       string
+	parameters []Expression
+}
+
+func NewGoFunctionCall(name string, parameters []Expression) *GoFunctionCall {
+	return &GoFunctionCall{name: name, parameters: parameters}
+}
+
+func (a *GoFunctionCall) Dump(prefix string) {
+	//r := "resolved"
+	//if a.decl == nil {
+	//	r = "not resolved"
+	//}
+	//fmt.Printf("%s FunctionCall %s %s\n", prefix, a.name, r)
+	for _, x := range a.parameters {
+		fmt.Printf("%s\tparameters: %#v\n", prefix, x)
+	}
+}
+
+func (a *GoFunctionCall) accept(visitor AstVisitor) interface{} {
+	return visitor.VisitGoFunctionCall(a)
 }
 
 type Variable struct {

@@ -14,7 +14,7 @@ https://github.com/CheungChan/duang/releases
 demo里面支持的语法现在都支持。
 
 ## 程序运行输出截图：
-![](https://img.azhangbaobao.cn/img/20220506020204.png)
+![](https://img.azhangbaobao.cn/img/20220509141847.png)
 
 ## 语法设想
 1. 既有`python`的可读性

@@ -76,7 +76,7 @@ func (a Parser) parseVariableDecl() *VariableDecl {
 		var init *Expression
 		t1 := a.scanner.Peek()
 		// 类型标注
-		if t1.Text == ":" {
+		if t1.Text == "::" {
 			a.scanner.Next()
 			t1 = a.scanner.Peek()
 			if t1.Kind == KTokenKindIdentifier {
@@ -243,7 +243,9 @@ func (a Parser) parsePrimary() Expression {
 	//知识点：以Identifier开头，可能是函数调用，也可能是一个变量，所以要再多向后看一个Token，
 	//这相当于在局部使用了LL(2)算法。
 	if t.Kind == KTokenKindIdentifier {
-		if a.scanner.Peek2().Text == "(" {
+		if a.scanner.Peek2().Text == "::" {
+			return a.parseGoFunctionCall()
+		} else if a.scanner.Peek2().Text == "(" {
 			return a.parseFunctionCall()
 		} else {
 			a.scanner.Next()
@@ -314,6 +316,48 @@ func (a Parser) parseFunctionCall() *FunctionCall {
 				a.scanner.Next()
 			}
 			n := NewFunctionCall(t.Text, params)
+			return n
+		}
+	}
+	return nil
+}
+
+func (a Parser) parseGoFunctionCall() *GoFunctionCall {
+	params := make([]Expression, 0)
+	t := a.scanner.Next()
+	if t.Kind == KTokenKindIdentifier {
+		a.scanner.Next() // 跳过:
+		tRight := a.scanner.Next()
+		t1 := a.scanner.Next()
+		if t1.Text == "(" {
+			t1 = a.scanner.Peek()
+			//循环，读出所有参数
+			for t1.Text != ")" {
+				exp := a.parseExpression()
+				if exp != nil {
+					params = append(params, *exp)
+				} else {
+					fail("Error parsing parameter in function call")
+					return nil
+				}
+				t1 = a.scanner.Peek()
+				if t1.Text != ")" {
+					if t1.Text == "," {
+						t1 = a.scanner.Next()
+					} else {
+						fail("excepting a comma at the end of a function call, while we got a " + t1.Text)
+						return nil
+					}
+				}
+			}
+			//消化掉')'
+			a.scanner.Next()
+			t1 = a.scanner.Peek()
+			if t1.Text == ";" {
+				a.scanner.Next()
+			}
+			name := fmt.Sprintf("%s::%s", t.Text, tRight.Text)
+			n := NewGoFunctionCall(name, params)
 			return n
 		}
 	}
