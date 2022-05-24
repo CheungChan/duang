@@ -1,9 +1,10 @@
 package main
 
 import (
-	"duang/lib"
 	"fmt"
 	"os"
+
+	"duang/lib"
 
 	"github.com/gogf/gf/os/gfile"
 )
@@ -29,15 +30,15 @@ func main() {
 	if verbose {
 		fmt.Println("开始词法分析")
 	}
-	tokennizer := lib.NewTokenizer(lib.NewCharStream(program))
-	for tokennizer.Peek().Kind != lib.KTokenKindEOF {
-		tokennizer.Next()
+	tokenizer := lib.NewTokenizer(lib.NewCharStream(program))
+	for tokenizer.Peek().Kind != lib.KTokenKindEOF {
+		tokenizer.Next()
 	}
 	if verbose {
 		fmt.Println("词法分析完成，开始语法分析")
 	}
-	tokennizer = lib.NewTokenizer(lib.NewCharStream(program)) //重置tokenizer,回到开头。
-	prog := lib.NewParser(tokennizer).ParseProg()
+	tokenizer = lib.NewTokenizer(lib.NewCharStream(program)) //重置tokenizer,回到开头。
+	prog := lib.NewParser(tokenizer).ParseProg()
 	if verbose {
 		fmt.Println("语法分析后的AST:")
 		prog.Dump("")
