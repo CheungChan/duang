@@ -1,21 +1,22 @@
 package main
 
 import (
-	"duang/lib"
 	"fmt"
+
+	"duang/lib"
 )
 
 /////////////////////////////////////////////////////////////////////////
 // 主程序
 func main() {
 	//词法分析
-	tokenNizer := lib.NewTokenizer(lib.TokenArray)
+	tokenizer := lib.NewTokenizer(lib.TokenArray)
 	fmt.Println("程序所使用的的token")
 	for _, x := range lib.TokenArray {
 		fmt.Println(x)
 	}
 	//语法分析
-	prog := lib.NewParser(tokenNizer).ParseProg()
+	prog := lib.NewParser(tokenizer).ParseProg()
 	fmt.Println("语法分析后的AST:")
 	prog.Dump("")
 	//语义分析
