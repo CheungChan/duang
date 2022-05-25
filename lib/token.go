@@ -13,7 +13,7 @@ const (
 	KTokenKindEOF
 )
 
-const KKeywordFunction = "def"
+const KKeywordFunction = "fn"
 const KBuiltinFunctionPrintln = "print"
 
 var KEOFToken = Token{Kind: KTokenKindEOF, Text: ""}

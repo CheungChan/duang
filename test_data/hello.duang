@@ -4,7 +4,7 @@
 */
 
 // single line comment will be ignored
-def hello(){
+fn hello(){
     print("hello world")
 }
 
@@ -14,7 +14,7 @@ def hello(){
 * will be ignored
 */
 // support function decl
-def foo(){
+fn foo(){
     // support nested function call 支持省略函数调用末尾的;
     hello();
     print("你好世界")
