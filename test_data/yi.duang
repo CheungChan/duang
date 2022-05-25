@@ -1,0 +1,6 @@
+
+import "test_data/src/github.com/gocode/yi/yi.go"
+
+fn main(){
+    print(yi::yi("求一个好卦象"))
+}
