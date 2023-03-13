@@ -2,6 +2,7 @@ package hello
 
 import (
 	"fmt"
+	"sync"
 )
 
 func hello(msg string) string {
@@ -13,4 +14,17 @@ func channel(msg string) string {
 	ch <- msg
 	returnMsg := <-ch
 	return returnMsg
+}
+
+func testStd(msg string) string {
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	for i := 0; i < 2; i++ {
+		go func(i int) {
+			fmt.Printf("第%d个输出\n", i+1)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	return "支持标准库成功"
 }
