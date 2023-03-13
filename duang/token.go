@@ -2,7 +2,7 @@ package duang
 
 import (
 	"fmt"
-	"syscall"
+	"os"
 )
 
 type Token struct {
@@ -57,5 +57,5 @@ func (a *CharStream) AllRead() string {
 
 func fail(msg string) {
 	fmt.Println(msg)
-	syscall.Exit(-1)
+	os.Exit(-1)
 }
