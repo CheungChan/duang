@@ -77,6 +77,6 @@ fn main(){
 
     print(hello::hello("你好呀，go语言"))
     print(hello::channel("go chan支持测试"))
-    print(hello::testStd(""))
+    print(hello::testStd("支持go标准库了"))
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 }
